@@ -1,0 +1,66 @@
+# ==========================================
+# Environment Variables & Secret Configuration Files
+# ==========================================
+.env
+.env.*
+*.env
+*.env.local
+backend/.env
+backend/.env.*
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+# ASP.NET Environment settings (Contains secrets like ConnectionStrings & ClientIds)
+appsettings.Development.json
+appsettings.Local.json
+appsettings.Staging.json
+appsettings.Production.json
+backend/appsettings.Development.json
+backend/appsettings.Local.json
+
+# ==========================================
+# User Uploaded Static Files
+# ==========================================
+backend/wwwroot/uploads/*
+!backend/wwwroot/uploads/.gitkeep
+
+# ==========================================
+# .NET / C# Build Outputs & IDE Files
+# ==========================================
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.userprefs
+*.dbmdl
+
+# ==========================================
+# Node / React Build Outputs & Dependencies
+# ==========================================
+node_modules/
+frontend/node_modules/
+build/
+frontend/build/
+dist/
+frontend/dist/
+.craco/
+.npm
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ==========================================
+# OS & Agent Temporary Files
+# ==========================================
+.DS_Store
+Thumbs.db
+.gemini/
+*.tmp

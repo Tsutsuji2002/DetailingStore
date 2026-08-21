@@ -1,0 +1,67 @@
+.jobs-layout { padding: 2.5rem 0 4rem; max-width: 900px; }
+
+.recruit-intro-card {
+  background: var(--bg-card);
+  border-radius: 18px;
+  border: 1px solid var(--border-color);
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: var(--shadow-sm);
+}
+.ric-text h2 { font-size: 1.25rem; font-weight: 800; color: var(--text-primary); margin-bottom: 1rem; }
+.ric-text ul { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; list-style: none; padding: 0; }
+.ric-text li { font-size: 0.9rem; color: var(--text-secondary); }
+
+.jobs-list { display: flex; flex-direction: column; gap: 1.25rem; }
+
+.job-card {
+  background: var(--bg-card);
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  padding: 1.5rem;
+  transition: all 0.25s;
+}
+.job-card:hover { border-color: var(--accent-primary); box-shadow: var(--shadow-md); }
+
+.job-card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
+
+.job-type-badge {
+  display: inline-block;
+  padding: 0.2em 0.6em;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+}
+.job-type-full-time { background: #dbeafe; color: #1d4ed8; }
+.job-type-apprentice { background: #fef3c7; color: #b45309; }
+
+.job-title { font-size: 1.2rem; font-weight: 800; color: var(--text-primary); }
+
+.job-salary { font-size: 1rem; font-weight: 700; color: var(--accent-primary); background: var(--accent-light); padding: 0.3em 0.8em; border-radius: 8px; }
+
+.job-desc { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 1rem; }
+
+.job-meta-row { display: flex; gap: 1.25rem; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.25rem; flex-wrap: wrap; }
+.job-meta-row span { display: flex; align-items: center; gap: 0.3rem; }
+
+.job-card-footer { display: flex; justify-content: flex-end; border-top: 1px solid var(--border-color); padding-top: 1rem; }
+
+.btn-job-detail {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1.25rem;
+  border-radius: 10px;
+  background: var(--accent-primary);
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+.btn-job-detail:hover { background: var(--accent-secondary); transform: translateY(-1px); }
+
+@media (max-width: 600px) {
+  .ric-text ul { grid-template-columns: 1fr; }
+}

@@ -1,0 +1,40 @@
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
+
+#nullable disable
+
+namespace DetailingStore.Api.Migrations
+{
+    /// <inheritdoc />
+    public partial class AddOtpFields : Migration
+    {
+        /// <inheritdoc />
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.AddColumn<string>(
+                name: "otp_code",
+                table: "users",
+                type: "character varying(10)",
+                maxLength: 10,
+                nullable: true);
+
+            migrationBuilder.AddColumn<DateTime>(
+                name: "otp_expiration",
+                table: "users",
+                type: "timestamp with time zone",
+                nullable: true);
+        }
+
+        /// <inheritdoc />
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.DropColumn(
+                name: "otp_code",
+                table: "users");
+
+            migrationBuilder.DropColumn(
+                name: "otp_expiration",
+                table: "users");
+        }
+    }
+}

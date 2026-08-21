@@ -1,0 +1,41 @@
+.dashboard-layout {
+  display: flex;
+  min-height: 100vh;
+  padding-top: 0;
+  background: var(--bg-primary);
+  position: relative;
+  z-index: 1;
+  pointer-events: auto !important;
+}
+
+.dashboard-content {
+  flex: 1;
+  overflow: auto;
+  min-width: 0;
+  position: relative;
+  z-index: 2;
+  pointer-events: auto !important;
+}
+
+.dashboard-page-header {
+  padding: 1.5rem 2rem 0;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+}
+
+.dashboard-page-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  padding-bottom: 1rem;
+}
+
+.dashboard-body {
+  padding: 1.5rem 2rem;
+}
+
+@media (max-width: 768px) {
+  .dashboard-layout { padding-top: 0; }
+  .dashboard-body { padding: 1rem; }
+  .dashboard-page-header { padding: 1rem 1rem 0; }
+}
