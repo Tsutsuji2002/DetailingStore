@@ -1,14 +1,21 @@
-import React, { useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useMemo } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { FiSearch, FiFilter, FiClock, FiArrowRight } from 'react-icons/fi';
 import UserLayout from '@/components/layout/UserLayout';
 import { useAppDispatch, useAppSelector } from '@/hooks/useAppStore';
-import { setCategory, setSearch, setSort } from '@/features/servicesSlice';
+import { setCategory, setSearch, setSort, fetchServicesThunk, fetchServiceCategoriesThunk } from '@/features/servicesSlice';
 import './ServicesPage.css';
 
 const ServicesPage: React.FC = () => {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const { items, categories, selectedCategory, searchQuery, sortBy } = useAppSelector(s => s.services);
+  const { isAuthenticated } = useAppSelector(s => s.auth);
+
+  useEffect(() => {
+    dispatch(fetchServicesThunk());
+    dispatch(fetchServiceCategoriesThunk());
+  }, [dispatch]);
 
   const filtered = useMemo(() => {
     let list = [...items].filter(s => s.isActive);
@@ -89,6 +96,16 @@ const ServicesPage: React.FC = () => {
                   </div>
                   {svc.duration && <span className="scf-duration"><FiClock /> {svc.duration}</span>}
                   <span className="scf-cta">Chi tiết <FiArrowRight /></span>
+                  <button
+                    onClick={e => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      navigate(`/user/service-requests/new?serviceId=${svc.id}`);
+                    }}
+                    style={{ padding: '0.4rem 0.85rem', borderRadius: 8, background: 'var(--accent-gradient)', color: '#fff', fontWeight: 700, fontSize: '0.78rem', border: 'none', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                  >
+                    Đặt lịch
+                  </button>
                 </div>
               </div>
             </Link>

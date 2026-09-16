@@ -9,6 +9,13 @@ import notificationsReducer from '@/features/notificationsSlice';
 import scheduleReducer from '@/features/scheduleSlice';
 import chatReducer from '@/features/chatSlice';
 import shopReducer from '@/features/shopSlice';
+import jobsReducer from '@/features/jobsSlice';
+import workShiftsReducer from '@/features/workShiftsSlice';
+import usersReducer from '@/features/usersSlice';
+import mechanicDocsReducer from '@/features/mechanicDocsSlice';
+import bookingsReducer from '@/features/bookingsSlice';
+import serviceRequestsReducer from '@/features/serviceRequestsSlice';
+import workOrdersReducer from '@/features/workOrdersSlice';
 
 export const store = configureStore({
   reducer: {
@@ -22,6 +29,13 @@ export const store = configureStore({
     schedule: scheduleReducer,
     chat: chatReducer,
     shop: shopReducer,
+    jobs: jobsReducer,
+    workShifts: workShiftsReducer,
+    users: usersReducer,
+    mechanicDocs: mechanicDocsReducer,
+    bookings: bookingsReducer,
+    serviceRequests: serviceRequestsReducer,
+    workOrders: workOrdersReducer,
   },
 });
 

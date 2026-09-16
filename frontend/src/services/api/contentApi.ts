@@ -18,6 +18,19 @@ export interface UpdateContentRequest {
   heroSlidesJson: string;
 }
 
+export interface HeroSlideDto {
+  id: number;
+  tag: string;
+  title: string;
+  description: string;
+  imageUrl: string;
+  sortOrder: number;
+  isActive: boolean;
+  linkType?: string;        // "none" | "service" | "post" | "product"
+  linkedContentId?: string | null;
+  linkedContentSlug?: string | null;
+}
+
 export const contentApi = {
   async getContent(): Promise<SiteContentDto> {
     const res = await fetch(`${API_BASE_URL}/content`);
@@ -25,6 +38,15 @@ export const contentApi = {
       throw new Error('Không thể tải thông tin trang web.');
     }
     return res.json();
+  },
+
+  async getSlides(): Promise<HeroSlideDto[]> {
+    const res = await fetch(`${API_BASE_URL}/content/slides`);
+    if (!res.ok) {
+      throw new Error('Không thể tải danh sách hero slides.');
+    }
+    const result = await res.json();
+    return result.data || result;
   },
 
   async updateContent(data: UpdateContentRequest): Promise<{ message: string; content: SiteContentDto }> {

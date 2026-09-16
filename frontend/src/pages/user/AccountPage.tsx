@@ -1,17 +1,65 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { FiUser, FiShield, FiPackage, FiCalendar, FiLogOut, FiEdit3, FiCheck, FiKey, FiMail, FiLock } from 'react-icons/fi';
+﻿import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { 
+  FiUser, FiShield, FiPackage, FiCalendar, FiLogOut, FiEdit3, 
+  FiCheck, FiKey, FiMail, FiLock, FiCamera, FiMapPin, FiPlus, FiTrash2, FiStar 
+} from 'react-icons/fi';
 import UserLayout from '@/components/layout/UserLayout';
 import PasswordRulesChecker, { validatePasswordRules } from '@/components/ui/PasswordRulesChecker';
 import { useAppDispatch, useAppSelector } from '@/hooks/useAppStore';
 import { logout, updateUser, setCredentialsThunk, sendOtpThunk, changePasswordOtpThunk } from '@/features/authSlice';
+import postApi from '@/services/api/postApi';
+import { authApi } from '@/services/api/authApi';
+import type { UserAddress } from '@/types';
+import { 
+  getSavedAddresses, saveAddress, updateAddress, 
+  deleteAddress, setDefaultAddress, MAX_ADDRESSES 
+} from '@/utils/addressStorage';
+import { orderStorage, type UserOrder } from '@/utils/orderStorage';
+import { fetchServiceRequests } from '@/features/serviceRequestsSlice';
+import { useVNAddress } from '@/hooks/useVNAddress';
 import './AccountPage.css';
 
 const AccountPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const dispatch = useAppDispatch();
   const { user } = useAppSelector(s => s.auth);
-  const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'orders' | 'bookings'>('profile');
+  const { items: serviceRequests, loading: srLoading } = useAppSelector(s => s.serviceRequests);
+  const [activeTab, setActiveTab] = useState<'profile' | 'addresses' | 'security' | 'orders' | 'bookings'>('profile');
+
+  // Handle URL query parameter ?tab=
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam && ['profile', 'addresses', 'security', 'orders', 'bookings'].includes(tabParam)) {
+      setActiveTab(tabParam as any);
+    }
+  }, [searchParams]);
+
+  // Fetch service requests when bookings tab is active
+  useEffect(() => {
+    if (activeTab === 'bookings') {
+      dispatch(fetchServiceRequests());
+    }
+  }, [activeTab, dispatch]);
+
+  // Address Book Tab State & Cascading VN Address Hook
+  const vnAddr = useVNAddress();
+  const [addresses, setAddresses] = useState<UserAddress[]>([]);
+  const [editingAddr, setEditingAddr] = useState<UserAddress | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [addrMsg, setAddrMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Address Form State
+  const [addrLabel, setAddrLabel] = useState('Nhà riêng');
+  const [addrName, setAddrName] = useState('');
+  const [addrPhone, setAddrPhone] = useState('');
+  const [addrStreet, setAddrStreet] = useState('');
+  const [addrIsDefault, setAddrIsDefault] = useState(false);
+
+  useEffect(() => {
+    setAddresses(getSavedAddresses(user?.id));
+  }, [user?.id]);
 
   // Profile Tab State
   const [lastName, setLastName] = useState(user?.lastName || '');
@@ -19,6 +67,13 @@ const AccountPage: React.FC = () => {
   const [phone, setPhone] = useState(user?.phone || '');
   const [address, setAddress] = useState(user?.address || '');
   const [profileSaved, setProfileSaved] = useState(false);
+
+  // Avatar Upload State
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [avatarMsg, setAvatarMsg] = useState<string | null>(null);
+  const [localAvatarPreview, setLocalAvatarPreview] = useState<string | null>(null);
+  const [avatarImgError, setAvatarImgError] = useState(false);
 
   // Security Tab State (Set Credentials for Google user)
   const [newUsername, setNewUsername] = useState(user?.username || '');
@@ -46,30 +101,63 @@ const AccountPage: React.FC = () => {
     }
   }, [user]);
 
-  // Countdown timer for resending OTP
-  useEffect(() => {
-    if (otpCountdown > 0) {
-      const timer = setTimeout(() => setOtpCountdown(p => p - 1), 1000);
-      return () => clearTimeout(timer);
+  const handleAvatarSelect = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Show local preview immediately
+    const objectUrl = URL.createObjectURL(file);
+    setLocalAvatarPreview(objectUrl);
+    setAvatarImgError(false);
+
+    try {
+      setAvatarUploading(true);
+      setAvatarMsg('Đang tải ảnh lên...');
+      const uploadedUrl = await postApi.uploadImage(file);
+      await authApi.updateProfile({ avatarUrl: uploadedUrl });
+      dispatch(updateUser({ avatarUrl: uploadedUrl, avatar: uploadedUrl }));
+      setAvatarMsg('Cập nhật ảnh đại diện thành công!');
+      setLocalAvatarPreview(null); // Use the real URL now from redux store
+      setTimeout(() => setAvatarMsg(null), 3000);
+    } catch (err: any) {
+      setAvatarMsg('Lỗi tải ảnh đại diện: ' + (err.message || 'Thất bại'));
+      setLocalAvatarPreview(null);
+      setTimeout(() => setAvatarMsg(null), 4000);
+    } finally {
+      setAvatarUploading(false);
     }
-  }, [otpCountdown]);
+  };
 
   const handleLogout = () => {
     dispatch(logout());
     navigate('/');
   };
 
-  const handleSaveProfile = (e: React.FormEvent) => {
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    dispatch(updateUser({
-      firstName,
-      lastName,
-      fullName: `${lastName} ${firstName}`.trim(),
-      phone,
-      address,
-    }));
-    setProfileSaved(true);
-    setTimeout(() => setProfileSaved(false), 2500);
+    try {
+      await authApi.updateProfile({
+        firstName,
+        lastName,
+        phone,
+        address,
+      });
+      dispatch(updateUser({
+        firstName,
+        lastName,
+        fullName: `${lastName} ${firstName}`.trim(),
+        phone,
+        address,
+      }));
+      setProfileSaved(true);
+      setTimeout(() => setProfileSaved(false), 2500);
+    } catch (err: any) {
+      console.error(err);
+    }
   };
 
   // Handle Setting Username & Password for Google Accounts
@@ -157,15 +245,95 @@ const AccountPage: React.FC = () => {
     }
   };
 
-  const sampleOrders = [
-    { id: 'ORD-9482', date: '2024-08-10', total: 675000, status: 'Hoàn Thành', items: 'Set CarPro Clean (x1), Nhớt Honda Gold (x1)' },
-    { id: 'ORD-8391', date: '2024-07-28', total: 890000, status: 'Đã Giao', items: 'Lốp Michelin Pilot Street (x1)' },
-  ];
+  // Address Handlers
+  const handleOpenCreate = () => {
+    if (addresses.length >= MAX_ADDRESSES) {
+      setAddrMsg({ type: 'error', text: `Bạn đã lưu tối đa ${MAX_ADDRESSES} địa chỉ. Hãy xóa bớt trước khi thêm mới.` });
+      return;
+    }
+    setEditingAddr(null);
+    setAddrLabel('Nhà riêng');
+    setAddrName(user?.fullName || `${user?.lastName || ''} ${user?.firstName || ''}`.trim() || '');
+    setAddrPhone(user?.phone || '');
+    setAddrStreet('');
+    setAddrIsDefault(addresses.length === 0);
+    setAddrMsg(null);
+    setIsFormOpen(true);
+  };
 
-  const sampleBookings = [
-    { id: 'BK-102', date: '2024-08-15 09:00', service: 'Phủ Ceramic Xe Máy 3 Lớp', status: 'Đã Xác Nhận', mechanic: 'Nguyễn Văn Minh' },
-    { id: 'BK-089', date: '2024-07-20 14:00', service: 'Bảo Dưỡng Tổng Quát Tay Ga', status: 'Hoàn Thành', mechanic: 'Lê Hoàng Nam' },
-  ];
+  const handleOpenEdit = (addr: UserAddress) => {
+    setEditingAddr(addr);
+    setAddrLabel(addr.label || 'Nhà riêng');
+    setAddrName(addr.receiverName || '');
+    setAddrPhone(addr.phone || '');
+    setAddrStreet(addr.streetAddress || '');
+    setAddrIsDefault(!!addr.isDefault);
+    setAddrMsg(null);
+    setIsFormOpen(true);
+    vnAddr.setByName(addr.province || '', addr.district || '', addr.ward || '');
+  };
+
+  const handleSaveAddrForm = (e: React.FormEvent) => {
+    e.preventDefault();
+    const full = vnAddr.getFullAddress();
+    if (!addrName.trim() || !addrPhone.trim() || !full.province || !full.district || !full.ward || !addrStreet.trim()) {
+      setAddrMsg({ type: 'error', text: 'Vui lòng chọn Tỉnh/Thành, Quận/Huyện, Phường/Xã và điền số nhà/tên đường.' });
+      return;
+    }
+
+    if (editingAddr) {
+      const updated = updateAddress(editingAddr.id, {
+        label: addrLabel,
+        receiverName: addrName,
+        phone: addrPhone,
+        province: full.province,
+        district: full.district,
+        ward: full.ward,
+        streetAddress: addrStreet,
+        isDefault: addrIsDefault,
+      }, user?.id);
+      setAddresses(updated);
+      setAddrMsg({ type: 'success', text: 'Đã cập nhật địa chỉ thành công!' });
+    } else {
+      const res = saveAddress({
+        label: addrLabel,
+        receiverName: addrName,
+        phone: addrPhone,
+        province: full.province,
+        district: full.district,
+        ward: full.ward,
+        streetAddress: addrStreet,
+        isDefault: addrIsDefault,
+      }, user?.id);
+
+      if (!res.success) {
+        setAddrMsg({ type: 'error', text: res.message || 'Lỗi lưu địa chỉ' });
+        return;
+      }
+      setAddresses(res.addresses);
+      setAddrMsg({ type: 'success', text: 'Đã thêm địa chỉ mới thành công!' });
+    }
+
+    setIsFormOpen(false);
+  };
+
+  const handleDeleteAddr = (id: string) => {
+    if (window.confirm('Bạn có chắc muốn xóa địa chỉ này?')) {
+      const updated = deleteAddress(id, user?.id);
+      setAddresses(updated);
+    }
+  };
+
+  const handleSetDefaultAddr = (id: string) => {
+    const updated = setDefaultAddress(id, user?.id);
+    setAddresses(updated);
+  };
+
+  const [userOrders, setUserOrders] = useState<UserOrder[]>([]);
+
+  useEffect(() => {
+    setUserOrders(orderStorage.getOrders());
+  }, [activeTab]);
 
   const displayName = user ? (user.fullName || `${user.lastName} ${user.firstName}`.trim()) : 'Khách Hàng';
   const hasPassword = user?.hasPassword || false;
@@ -183,15 +351,64 @@ const AccountPage: React.FC = () => {
       <div className="container account-layout">
         {/* Sidebar Nav */}
         <aside className="account-sidebar">
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleAvatarFileChange}
+            accept="image/*"
+            style={{ display: 'none' }}
+          />
+
           <div className="user-profile-summary">
-            <img src={user?.avatarUrl || user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=1a5cff&color=ffffff&bold=true`} alt="" className="summary-avatar" />
-            <h3 className="summary-name">{displayName}</h3>
+            <div className="avatar-upload-container" onClick={handleAvatarSelect} title="Nhấp để thay đổi ảnh đại diện">
+              {(() => {
+                const src = localAvatarPreview || user?.avatarUrl || user?.avatar;
+                const initials = (() => {
+                  if (!displayName?.trim()) return '';
+                  const parts = displayName.trim().split(/\s+/);
+                  return parts.length === 1 ? parts[0][0].toUpperCase() : (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+                })();
+                if (src && !avatarImgError) {
+                  return (
+                    <img
+                      src={src}
+                      alt="Avatar"
+                      className="summary-avatar-img"
+                      onError={() => setAvatarImgError(true)}
+                    />
+                  );
+                }
+                return (
+                  <div className="summary-avatar-img" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #1a5cff 0%, #0ea5e9 100%)', color: '#fff', fontWeight: 800, fontSize: '2rem', userSelect: 'none' }}>
+                    {initials || <FiUser size={32} />}
+                  </div>
+                );
+              })()}
+              <div className="avatar-upload-badge">
+                <FiCamera />
+              </div>
+            </div>
+            <div>
+              <span className="avatar-upload-hint" onClick={handleAvatarSelect}>
+                <FiCamera /> {avatarUploading ? 'Đang tải...' : 'Đổi ảnh đại diện'}
+              </span>
+            </div>
+            {avatarMsg && (
+              <div style={{ fontSize: '0.78rem', color: avatarMsg.includes('Lỗi') ? '#dc2626' : '#16a34a', fontWeight: 600, marginTop: '0.2rem' }}>
+                {avatarMsg}
+              </div>
+            )}
+
+            <h3 className="summary-name" style={{ marginTop: '0.5rem' }}>{displayName}</h3>
             <span className="summary-role">{user?.role === 'admin' ? '👑 Quản Lý (Admin)' : user?.role === 'staff' ? '🛠️ Nhân Viên (Staff)' : '👤 Khách Hàng Thân Thiết'}</span>
           </div>
 
           <nav className="account-menu">
             <button className={`menu-btn ${activeTab === 'profile' ? 'active' : ''}`} onClick={() => setActiveTab('profile')}>
               <FiUser /> Thông Tin Cá Nhân
+            </button>
+            <button className={`menu-btn ${activeTab === 'addresses' ? 'active' : ''}`} onClick={() => setActiveTab('addresses')}>
+              <FiMapPin /> Sổ Địa Chỉ Thanh Toán
             </button>
             <button className={`menu-btn ${activeTab === 'security' ? 'active' : ''}`} onClick={() => setActiveTab('security')}>
               <FiShield /> Bảo Mật & Đăng Nhập
@@ -258,7 +475,152 @@ const AccountPage: React.FC = () => {
             </div>
           )}
 
-          {/* TAB 2: Security & Password */}
+          {/* TAB 2: Address Book (Sổ Địa Chỉ) */}
+          {activeTab === 'addresses' && (
+            <div>
+              <div className="account-card">
+                <div className="addr-book-header">
+                  <h3 className="account-card-title"><FiMapPin /> Sổ Địa Chỉ Thanh Toán ({addresses.length}/{MAX_ADDRESSES})</h3>
+                  <button className="btn-addr-add" onClick={handleOpenCreate} disabled={addresses.length >= MAX_ADDRESSES}>
+                    <FiPlus /> Thêm Địa Chỉ Mới
+                  </button>
+                </div>
+
+                {addrMsg && (
+                  <div className={addrMsg.type === 'success' ? 'save-alert' : 'addr-error-msg'}>
+                    {addrMsg.type === 'success' && <FiCheck />} {addrMsg.text}
+                  </div>
+                )}
+
+                {addresses.length === 0 && !isFormOpen && (
+                  <div className="addr-empty-state">
+                    <FiMapPin size={40} />
+                    <p>Bạn chưa có địa chỉ nào. Thêm địa chỉ để thanh toán nhanh hơn!</p>
+                  </div>
+                )}
+
+                <div className="addr-list">
+                  {addresses.map(addr => (
+                    <div key={addr.id} className={`addr-card ${addr.isDefault ? 'addr-default' : ''}`}>
+                      <div className="addr-card-top">
+                        <div className="addr-label-row">
+                          <span className="addr-label-chip">{addr.label || 'Địa chỉ'}</span>
+                          {addr.isDefault && <span className="addr-default-badge"><FiStar /> Mặc định</span>}
+                        </div>
+                        <div className="addr-card-actions">
+                          {!addr.isDefault && (
+                            <button className="addr-action-btn" onClick={() => handleSetDefaultAddr(addr.id)} title="Đặt làm mặc định">
+                              <FiStar />
+                            </button>
+                          )}
+                          <button className="addr-action-btn" onClick={() => handleOpenEdit(addr)} title="Sửa địa chỉ">
+                            <FiEdit3 />
+                          </button>
+                          <button className="addr-action-btn danger" onClick={() => handleDeleteAddr(addr.id)} title="Xóa địa chỉ">
+                            <FiTrash2 />
+                          </button>
+                        </div>
+                      </div>
+                      <div className="addr-receiver"><strong>{addr.receiverName}</strong> &nbsp;|&nbsp; {addr.phone}</div>
+                      <div className="addr-full">
+                        {addr.streetAddress}, {addr.ward}, {addr.district}, {addr.province}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {isFormOpen && (
+                  <div className="addr-form-card">
+                    <h4 className="addr-form-title">
+                      {editingAddr ? '✏️ Chỉnh Sửa Địa Chỉ' : '📍 Thêm Địa Chỉ Mới'}
+                    </h4>
+                    <form onSubmit={handleSaveAddrForm} className="acc-form">
+                      <div className="form-group">
+                        <label>Nhãn địa chỉ</label>
+                        <div className="addr-label-pills">
+                          {['Nhà riêng', 'Văn phòng', 'Quê nhà', 'Khác'].map(lbl => (
+                            <button key={lbl} type="button"
+                              className={`label-pill ${addrLabel === lbl ? 'active' : ''}`}
+                              onClick={() => setAddrLabel(lbl)}>
+                              {lbl}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="form-group-row">
+                        <div className="form-group">
+                          <label>Họ và tên người nhận *</label>
+                          <input type="text" value={addrName} onChange={e => setAddrName(e.target.value)} required placeholder="Họ và tên người nhận" />
+                        </div>
+                        <div className="form-group">
+                          <label>Số điện thoại *</label>
+                          <input type="tel" value={addrPhone} onChange={e => setAddrPhone(e.target.value)} required placeholder="Số điện thoại liên hệ" />
+                        </div>
+                      </div>
+
+                      <div className="form-group-row">
+                        <div className="form-group">
+                          <label>Tỉnh / Thành phố *</label>
+                          <select
+                            value={vnAddr.selectedProvince?.code || ''}
+                            onChange={e => vnAddr.selectProvince(e.target.value)}
+                            disabled={vnAddr.loadingProvinces}
+                          >
+                            {vnAddr.loadingProvinces && <option value="">Đang tải Tỉnh/Thành...</option>}
+                            {!vnAddr.loadingProvinces && vnAddr.provinces.map(p => (
+                              <option key={p.code} value={p.code}>{p.name}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="form-group">
+                          <label>Phường / Xã / Thị trấn *</label>
+                          <select
+                            value={vnAddr.selectedWard?.code || ''}
+                            onChange={e => vnAddr.selectWard(e.target.value)}
+                            disabled={vnAddr.loadingWards || !vnAddr.selectedProvince}
+                          >
+                            <option value="">{vnAddr.loadingWards ? 'Đang tải Phường/Xã...' : '-- Chọn Phường / Xã / Thị trấn --'}</option>
+                            {vnAddr.wards.map(w => (
+                              <option key={w.code} value={w.code}>{w.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="form-group">
+                        <label>Số nhà, tên đường, tòa nhà / căn hộ *</label>
+                        <input type="text" value={addrStreet} onChange={e => setAddrStreet(e.target.value)} required placeholder="Số nhà, tên đường, tòa nhà / căn hộ..." />
+                      </div>
+
+                      <div className="form-group">
+                        <label className="checkbox-label">
+                          <input type="checkbox" checked={addrIsDefault} onChange={e => setAddrIsDefault(e.target.checked)} />
+                          Đặt làm địa chỉ mặc định
+                        </label>
+                      </div>
+
+                      {addrMsg && addrMsg.type === 'error' && (
+                        <div className="addr-error-msg">{addrMsg.text}</div>
+                      )}
+
+                      <div className="addr-form-actions">
+                        <button type="submit" className="btn-save-acc">
+                          {editingAddr ? 'Cập Nhật Địa Chỉ' : 'Lưu Địa Chỉ Mới'}
+                        </button>
+                        <button type="button" className="btn-cancel-addr" onClick={() => setIsFormOpen(false)}>
+                          Hủy
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: Security & Password */}
           {activeTab === 'security' && (
             <div>
               {/* Account Status Box */}
@@ -393,61 +755,113 @@ const AccountPage: React.FC = () => {
           {activeTab === 'orders' && (
             <div className="account-card">
               <h3 className="account-card-title"><FiPackage /> Lịch Sử Đơn Hàng</h3>
-              <div className="orders-table-wrap">
-                <table className="acc-table">
-                  <thead>
-                    <tr>
-                      <th>Mã Đơn</th>
-                      <th>Ngày</th>
-                      <th>Sản Phẩm</th>
-                      <th>Tổng Tiền</th>
-                      <th>Trạng Thái</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sampleOrders.map(o => (
-                      <tr key={o.id}>
-                        <td><strong>#{o.id}</strong></td>
-                        <td>{o.date}</td>
-                        <td style={{ fontSize: '0.85rem' }}>{o.items}</td>
-                        <td><strong>{o.total.toLocaleString('vi-VN')}₫</strong></td>
-                        <td><span className="status-badge success">{o.status}</span></td>
+              {userOrders.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '3rem 1rem', color: '#6b7280' }}>
+                  <FiPackage size={48} style={{ marginBottom: '0.75rem', color: '#9ca3af' }} />
+                  <p style={{ margin: '0 0 1rem 0', fontWeight: 500 }}>Bạn chưa có đơn hàng nào.</p>
+                  <Link to="/products" className="btn-save-acc" style={{ textDecoration: 'none', display: 'inline-flex', width: 'auto' }}>
+                    Khám Phá Sản Phẩm Ngay
+                  </Link>
+                </div>
+              ) : (
+                <div className="orders-table-wrap">
+                  <table className="acc-table">
+                    <thead>
+                      <tr>
+                        <th>Mã Đơn</th>
+                        <th>Ngày</th>
+                        <th>Sản Phẩm</th>
+                        <th>Tổng Tiền</th>
+                        <th>Trạng Thái</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {userOrders.map(o => (
+                        <tr key={o.id}>
+                          <td><strong>#{o.id}</strong></td>
+                          <td>{o.date}</td>
+                          <td style={{ fontSize: '0.85rem' }}>{o.itemsSummary || o.items?.map(i => i.name).join(', ')}</td>
+                          <td><strong>{o.total.toLocaleString('vi-VN')}₫</strong></td>
+                          <td><span className="status-badge success">{o.status}</span></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           )}
 
-          {/* TAB 4: Bookings */}
+          {/* TAB 4: Bookings — Service Requests */}
           {activeTab === 'bookings' && (
             <div className="account-card">
-              <h3 className="account-card-title"><FiCalendar /> Lịch Hẹn Dịch Vụ Detailing</h3>
-              <div className="orders-table-wrap">
-                <table className="acc-table">
-                  <thead>
-                    <tr>
-                      <th>Mã Lịch</th>
-                      <th>Thời Gian</th>
-                      <th>Dịch Vụ</th>
-                      <th>Kỹ Thuật Viên</th>
-                      <th>Trạng Thái</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sampleBookings.map(b => (
-                      <tr key={b.id}>
-                        <td><strong>#{b.id}</strong></td>
-                        <td>{b.date}</td>
-                        <td><strong>{b.service}</strong></td>
-                        <td>{b.mechanic}</td>
-                        <td><span className="status-badge info">{b.status}</span></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+                <h3 className="account-card-title" style={{ margin: 0 }}><FiCalendar /> Yêu Cầu Dịch Vụ Của Tôi</h3>
+                <Link
+                  to="/user/service-requests/new"
+                  style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fff', background: 'var(--accent-gradient)', padding: '0.45rem 1rem', borderRadius: 8, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                >
+                  + Gửi yêu cầu mới
+                </Link>
               </div>
+
+              {srLoading ? (
+                <div style={{ textAlign: 'center', padding: '2rem', color: '#999' }}>Đang tải...</div>
+              ) : serviceRequests.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: '#999' }}>
+                  <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>📋</div>
+                  <p style={{ margin: '0 0 1rem', fontSize: '0.95rem' }}>Chưa có yêu cầu dịch vụ nào.</p>
+                  <Link to="/user/service-requests/new" style={{ color: '#4d8aff', fontWeight: 600 }}>Gửi yêu cầu ngay</Link>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                  {serviceRequests.map(req => {
+                    const statusColor = req.status === 'Pending' ? '#f59e0b' : req.status === 'Accepted' ? '#10b981' : '#ef4444';
+                    const statusBg   = req.status === 'Pending' ? 'rgba(245,158,11,0.12)' : req.status === 'Accepted' ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)';
+                    const statusLabel = req.status === 'Pending' ? 'Chờ xử lý' : req.status === 'Accepted' ? 'Đã chấp nhận' : 'Đã từ chối';
+                    return (
+                      <div key={req.id} style={{ padding: '1rem 1.25rem', borderRadius: 12, border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', display: 'flex', flexWrap: 'wrap', gap: '0.75rem', alignItems: 'flex-start' }}>
+                        {/* Left: service + vehicle */}
+                        <div style={{ flex: 1, minWidth: 180 }}>
+                          <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)', marginBottom: '0.2rem' }}>
+                            {req.requestedServiceName}
+                          </div>
+                          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                            🚗 {req.vehicleInfo?.licensePlate} · {req.vehicleInfo?.model}
+                            {req.vehicleInfo?.year ? ` (${req.vehicleInfo.year})` : ''}
+                          </div>
+                          {req.customerNotes && (
+                            <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '0.2rem', fontStyle: 'italic' }}>
+                              "{req.customerNotes}"
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Middle: date/time */}
+                        <div style={{ textAlign: 'center', minWidth: 100 }}>
+                          <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '0.1rem' }}>Mong muốn</div>
+                          <div style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--text-primary)' }}>
+                            {new Date(req.preferredDate).toLocaleDateString('vi-VN')}
+                          </div>
+                          <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                            {req.preferredTime?.substring(0, 5)}
+                          </div>
+                        </div>
+
+                        {/* Right: status + created date */}
+                        <div style={{ textAlign: 'right', minWidth: 110 }}>
+                          <span style={{ display: 'inline-block', padding: '0.25rem 0.65rem', borderRadius: 9999, fontSize: '0.78rem', fontWeight: 700, background: statusBg, color: statusColor }}>
+                            {statusLabel}
+                          </span>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.3rem' }}>
+                            {new Date(req.createdAt).toLocaleDateString('vi-VN')}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
         </main>

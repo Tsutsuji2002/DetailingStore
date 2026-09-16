@@ -1,16 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { FiHeart, FiMessageCircle, FiShare2, FiSearch, FiCalendar, FiUser, FiImage, FiVideo } from 'react-icons/fi';
+import { FiHeart, FiMessageCircle, FiShare2, FiSearch, FiCalendar, FiImage, FiVideo } from 'react-icons/fi';
 import UserLayout from '@/components/layout/UserLayout';
 import { useAppDispatch, useAppSelector } from '@/hooks/useAppStore';
-import { toggleLike, setSearch } from '@/features/postsSlice';
+import { fetchPostsThunk, likePostThunk, setSearch } from '@/features/postsSlice';
 import './PostsPage.css';
 
 const PostsPage: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { items, searchQuery } = useAppSelector(s => s.posts);
-  const { user } = useAppSelector(s => s.auth);
+  const { items, searchQuery, isLoading } = useAppSelector(s => s.posts);
   const [activeTab, setActiveTab] = useState<'all' | 'image' | 'video' | 'text'>('all');
+
+  useEffect(() => { dispatch(fetchPostsThunk()); }, [dispatch]);
 
   const filtered = items.filter(p => {
     if (!p.isPublished) return false;
@@ -27,7 +28,7 @@ const PostsPage: React.FC = () => {
       <div className="page-hero">
         <div className="container">
           <h1 className="page-hero-title">Tin Tức & Bảng Tin</h1>
-          <p className="page-hero-sub">Chia sẻ kinh nghiệm chăm sóc xe, tin tức & ưu đãi từ MotoShine</p>
+          <p className="page-hero-sub">Chia sẻ kinh nghiệm chăm sóc xe, tin tức & ưu đãi từ 61 Team</p>
         </div>
       </div>
 
@@ -36,7 +37,23 @@ const PostsPage: React.FC = () => {
         <div className="posts-toolbar">
           <div className="search-box">
             <FiSearch className="search-icon" />
-            <input type="text" placeholder="Tìm bài viết, hashtag..." value={searchQuery} onChange={e => dispatch(setSearch(e.target.value))} id="posts-search" />
+            <input
+              type="text"
+              placeholder="Tìm kiếm bài viết, chủ đề, hashtag..."
+              value={searchQuery}
+              onChange={e => dispatch(setSearch(e.target.value))}
+              id="posts-search"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                className="search-clear-btn"
+                onClick={() => dispatch(setSearch(''))}
+                title="Xóa tìm kiếm"
+              >
+                ✕
+              </button>
+            )}
           </div>
           <div className="media-tabs">
             <button className={`tab-btn ${activeTab === 'all' ? 'active' : ''}`} onClick={() => setActiveTab('all')}>Tất Cả</button>
@@ -54,9 +71,16 @@ const PostsPage: React.FC = () => {
             <article key={post.id} className="sns-post-card">
               {/* Header */}
               <div className="post-header">
-                <img src={post.author?.avatar || `https://i.pravatar.cc/40?u=${post.authorId}`} alt="" className="author-avatar" />
+                <img
+                  src={
+                    post.authorAvatar ||
+                    `https://ui-avatars.com/api/?name=${encodeURIComponent(post.authorName || '61 Team Admin')}&background=1a5cff&color=ffffff&bold=true`
+                  }
+                  alt=""
+                  className="author-avatar"
+                />
                 <div className="author-meta">
-                  <div className="author-name">{post.author?.fullName || 'MotoShine Admin'}</div>
+                  <div className="author-name">{post.authorName || '61 Team Admin'}</div>
                   <div className="post-date"><FiCalendar /> {new Date(post.createdAt).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })}</div>
                 </div>
                 <span className="media-badge">{post.mediaType === 'image' ? '🖼️ Ảnh' : post.mediaType === 'video' ? '🎬 Video' : '📝 Bài viết'}</span>
@@ -83,10 +107,10 @@ const PostsPage: React.FC = () => {
               {/* Actions Bar */}
               <div className="post-actions">
                 <button
-                  className={`action-btn ${post.isLiked ? 'liked' : ''}`}
-                  onClick={() => dispatch(toggleLike(post.id))}
+                  className={`action-btn ${post.isLikedByCurrentUser ? 'liked' : ''}`}
+                  onClick={() => dispatch(likePostThunk(post.id))}
                   id={`like-btn-${post.id}`}>
-                  <FiHeart /> <span>{post.likes}</span>
+                  <FiHeart style={{ fill: post.isLikedByCurrentUser ? 'currentColor' : 'none' }} /> <span>{post.likes}</span>
                 </button>
 
                 <Link to={`/posts/${post.slug}`} className="action-btn">

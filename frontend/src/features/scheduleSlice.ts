@@ -1,6 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import type { ScheduleShift } from '@/types';
-import { SAMPLE_SHIFTS } from '@/data/sampleData';
 
 interface ScheduleState {
   shifts: ScheduleShift[];
@@ -8,7 +7,7 @@ interface ScheduleState {
 }
 
 const initialState: ScheduleState = {
-  shifts: SAMPLE_SHIFTS,
+  shifts: [],
   selectedDate: new Date().toISOString().split('T')[0],
 };
 

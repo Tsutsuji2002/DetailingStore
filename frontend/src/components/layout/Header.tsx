@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+﻿import React, { useState, useRef, useEffect } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { FiBell, FiShoppingCart, FiUser, FiMenu, FiX, FiSun, FiMoon, FiLogOut, FiSettings, FiChevronDown } from 'react-icons/fi';
 import { BsMoonStarsFill } from 'react-icons/bs';
@@ -9,6 +9,28 @@ import { toggleOpen as toggleNotif } from '@/features/notificationsSlice';
 import { toggleCart } from '@/features/cartSlice';
 import type { ThemeMode } from '@/features/themeSlice';
 import './Header.css';
+
+// Inline avatar component with automatic initials fallback
+const InlineAvatar: React.FC<{ src?: string | null; name?: string; size?: number; className?: string }> = ({ src, name, size = 34, className = '' }) => {
+  const [error, setError] = useState(false);
+  const initials = (() => {
+    if (!name?.trim()) return '';
+    const parts = name.trim().split(/\s+/);
+    return parts.length === 1 ? parts[0][0].toUpperCase() : (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  })();
+  const dim = `${size}px`;
+  const fallbackStyle: React.CSSProperties = {
+    width: dim, height: dim, borderRadius: '50%', flexShrink: 0,
+    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+    fontWeight: 700, fontSize: `${Math.max(11, Math.floor(size * 0.38))}px`,
+    background: 'linear-gradient(135deg, #1a5cff 0%, #0ea5e9 100%)',
+    color: '#fff', userSelect: 'none',
+  };
+  if (src && !error) {
+    return <img src={src} alt={name || 'Avatar'} className={className} style={{ width: dim, height: dim, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} onError={() => setError(true)} />;
+  }
+  return <span className={className} style={fallbackStyle}>{initials || <FiUser size={Math.floor(size * 0.45)} />}</span>;
+};
 
 const NAV_LINKS = [
   { to: '/', label: 'Trang Chủ' },
@@ -65,7 +87,7 @@ const Header: React.FC = () => {
         {/* Logo */}
         <Link to="/" className="header-logo">
           {shopInfo?.logoUrl ? (
-            <img src={shopInfo.logoUrl} alt={shopInfo?.name || 'Logo'} className="logo-img" style={{ height: 36, objectFit: 'contain', marginRight: 6 }} />
+            <img src={shopInfo.logoUrl} alt="" className="logo-img" style={{ height: 36, objectFit: 'contain', marginRight: 6 }} />
           ) : (
             <span className="logo-icon">{shopInfo?.logoIcon || '🏍️'}</span>
           )}
@@ -120,14 +142,14 @@ const Header: React.FC = () => {
           {isAuthenticated ? (
             <div className="dropdown-wrapper" ref={userMenuRef}>
               <button className="user-btn" onClick={() => setUserMenuOpen(p => !p)} id="user-menu-btn">
-                <img src={user?.avatarUrl || user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || user?.firstName || 'User')}&background=1a5cff&color=ffffff&bold=true`} alt={user?.firstName} className="user-avatar" />
+                <InlineAvatar src={user?.avatarUrl || user?.avatar} name={user?.fullName || `${user?.firstName || ''} ${user?.lastName || ''}`.trim()} size={34} className="user-avatar" />
                 <span className="user-name">{user?.firstName || user?.fullName}</span>
                 <FiChevronDown className={`chevron ${userMenuOpen ? 'open' : ''}`} />
               </button>
               {userMenuOpen && (
                 <div className="dropdown-menu user-menu">
                   <div className="user-menu-header">
-                    <img src={user?.avatarUrl || user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || user?.firstName || 'User')}&background=1a5cff&color=ffffff&bold=true`} alt="" className="user-menu-avatar" />
+                    <InlineAvatar src={user?.avatarUrl || user?.avatar} name={user?.fullName || `${user?.firstName || ''} ${user?.lastName || ''}`.trim()} size={40} className="user-menu-avatar" />
                     <div>
                       <div className="user-menu-name">{user?.fullName || `${user?.lastName} ${user?.firstName}`.trim()}</div>
                       <div className="user-menu-role">{user?.role === 'admin' ? 'Quản Trị Viên' : user?.role === 'staff' ? 'Nhân Viên' : 'Khách Hàng'}</div>
@@ -136,6 +158,7 @@ const Header: React.FC = () => {
                   <hr className="menu-divider" />
                   <Link to="/account" className="dropdown-item" onClick={() => setUserMenuOpen(false)}><FiUser /> Tài Khoản</Link>
                   <Link to="/settings" className="dropdown-item" onClick={() => setUserMenuOpen(false)}><FiSettings /> Cài Đặt</Link>
+                  {(user?.role === 'customer' || user?.role === 'admin') && <Link to="/user/service-requests/new" className="dropdown-item" onClick={() => setUserMenuOpen(false)}>📋 Gửi Yêu Cầu Dịch Vụ</Link>}
                   {user?.role === 'admin' && <Link to="/admin/dashboard" className="dropdown-item" onClick={() => setUserMenuOpen(false)}>🛡️ Quản Trị</Link>}
                   {(user?.role === 'staff' || user?.role === 'admin') && <Link to="/staff/schedule" className="dropdown-item" onClick={() => setUserMenuOpen(false)}>👨‍🔧 Khu Vực Staff</Link>}
                   <hr className="menu-divider" />

@@ -18,7 +18,11 @@ namespace DetailingStore.Api.Services
         public string GenerateToken(User user)
         {
             var jwtSettings = _configuration.GetSection("JwtSettings");
-            var secretKey = jwtSettings["SecretKey"] ?? "SUPER_SECRET_DEFAULT_KEY_32_BYTES_LONG_JWT_KEY!";
+            var rawKey = jwtSettings["SecretKey"] ?? "";
+var secretKey = (!string.IsNullOrEmpty(rawKey) && !rawKey.StartsWith("#{"))
+    ? rawKey
+    : (Environment.GetEnvironmentVariable("JwtSettings__SecretKey")
+       ?? "DetailingStore_Super_Secret_Jwt_Security_Key_2026_Key_Must_Be_32_Bytes_Long!");
             var issuer = jwtSettings["Issuer"] ?? "DetailingStoreApi";
             var audience = jwtSettings["Audience"] ?? "DetailingStoreApp";
             var expirationDays = int.TryParse(jwtSettings["ExpirationInDays"], out var days) ? days : 1;

@@ -40,7 +40,7 @@ export interface SetCredentialsRequest {
 }
 
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const token = localStorage.getItem('auth_token');
+  const token = localStorage.getItem('auth_token') || localStorage.getItem('motoshine_token');
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(options.headers as Record<string, string>),
@@ -58,6 +58,12 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
+    if (response.status === 401) {
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('motoshine_token');
+      localStorage.removeItem('motoshine_user');
+      throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+    }
     const errorMsg = data?.message || data?.title || 'Đã có lỗi xảy ra khi gọi máy chủ.';
     throw new Error(errorMsg);
   }
@@ -110,6 +116,13 @@ export const authApi = {
   async getCurrentUser(): Promise<User> {
     return request<User>('/auth/me', {
       method: 'GET',
+    });
+  },
+
+  async updateProfile(data: { firstName?: string; lastName?: string; phone?: string; address?: string; avatarUrl?: string }): Promise<User> {
+    return request<User>('/auth/profile', {
+      method: 'PUT',
+      body: JSON.stringify(data),
     });
   },
 };

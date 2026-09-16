@@ -356,6 +356,34 @@ namespace DetailingStore.Api.Controllers
         }
 
         /// <summary>
+        /// Cập nhật thông tin cá nhân (Họ tên, SĐT, Địa chỉ, AvatarUrl)
+        /// </summary>
+        [Authorize]
+        [HttpPut("profile")]
+        public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileDto dto)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
+                           ?? User.FindFirst("sub")?.Value;
+
+            if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+                return Unauthorized();
+
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+                return NotFound();
+
+            if (!string.IsNullOrWhiteSpace(dto.FirstName)) user.FirstName = dto.FirstName.Trim();
+            if (!string.IsNullOrWhiteSpace(dto.LastName)) user.LastName = dto.LastName.Trim();
+            if (dto.Phone != null) user.Phone = dto.Phone.Trim();
+            if (dto.Address != null) user.Address = dto.Address.Trim();
+            if (!string.IsNullOrWhiteSpace(dto.AvatarUrl)) user.AvatarUrl = dto.AvatarUrl.Trim();
+
+            await _context.SaveChangesAsync();
+
+            return Ok(UserDto.FromEntity(user));
+        }
+
+        /// <summary>
         /// Lấy thông tin người dùng đang đăng nhập thông qua Bearer Token
         /// </summary>
         [Authorize]

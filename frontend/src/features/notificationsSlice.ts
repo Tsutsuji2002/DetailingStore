@@ -1,6 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import type { Notification } from '@/types';
-import { SAMPLE_NOTIFICATIONS } from '@/data/sampleData';
 
 interface NotificationsState {
   items: Notification[];
@@ -8,7 +7,7 @@ interface NotificationsState {
 }
 
 const initialState: NotificationsState = {
-  items: SAMPLE_NOTIFICATIONS,
+  items: [],
   isOpen: false,
 };
 

@@ -37,6 +37,9 @@ namespace DetailingStore.Api.Models
         [Column("symptoms")]
         public string Symptoms { get; set; } = string.Empty;
 
+        [Column("content_html")]
+        public string ContentHtml { get; set; } = string.Empty;
+
         [Column("solution_steps", TypeName = "jsonb")]
         public string SolutionStepsJson { get; set; } = "[]";
 
@@ -48,5 +51,8 @@ namespace DetailingStore.Api.Models
 
         [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        [Column("updated_at")]
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     }
 }

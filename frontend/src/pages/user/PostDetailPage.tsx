@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { FiArrowLeft, FiHeart, FiShare2, FiCalendar, FiUser, FiSend } from 'react-icons/fi';
+import { FiArrowLeft, FiHeart, FiShare2, FiCalendar, FiSend } from 'react-icons/fi';
 import UserLayout from '@/components/layout/UserLayout';
 import { useAppDispatch, useAppSelector } from '@/hooks/useAppStore';
-import { toggleLike, addComment } from '@/features/postsSlice';
+import { likePostThunk, addComment, fetchPostsThunk } from '@/features/postsSlice';
+import postApi from '@/services/api/postApi';
+import UserAvatar from '@/components/ui/UserAvatar';
+import type { PostDto } from '@/services/api/postApi';
 import type { Comment } from '@/types';
 import './PostDetailPage.css';
 
@@ -12,26 +15,40 @@ const PostDetailPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const { items, comments } = useAppSelector(s => s.posts);
   const { user, isAuthenticated } = useAppSelector(s => s.auth);
-  const post = items.find(p => p.slug === slug);
+
+  const [post, setPost] = useState<PostDto | null>(null);
+  const [loading, setLoading] = useState(true);
   const [commentText, setCommentText] = useState('');
 
-  if (!post) return (
-    <UserLayout>
-      <div className="container" style={{ padding: '4rem 0', textAlign: 'center' }}>
-        <h2>Bài viết không tồn tại.</h2>
-        <Link to="/posts" className="btn-back">← Về danh sách tin tức</Link>
-      </div>
-    </UserLayout>
-  );
+  // Try to find from Redux store first; fallback to API fetch
+  useEffect(() => {
+    const fromStore = items.find(p => p.slug === slug || p.id === slug);
+    if (fromStore) {
+      setPost(fromStore);
+      setLoading(false);
+    } else {
+      if (slug) {
+        postApi.getPost(slug)
+          .then(data => setPost(data))
+          .catch(() => setPost(null))
+          .finally(() => setLoading(false));
+      }
+    }
+    // If items list is empty (direct URL open), also fetch the list for the sidebar/future navigation
+    if (items.length === 0) {
+      dispatch(fetchPostsThunk());
+    }
+  }, [slug, items]);
 
-  const postComments = comments[post.id] || [
-    { id: 'c1', postId: post.id, authorId: 'u3', author: { id: 'u3', username: 'khang', email: '', firstName: 'Khang', lastName: 'Trần Văn', fullName: 'Trần Văn Khang', role: 'customer', createdAt: '' }, content: 'Bài viết rất hữu ích! Cảm ơn shop.', likes: 3, createdAt: '2024-08-11T10:00:00Z' },
-    { id: 'c2', postId: post.id, authorId: 'u2', author: { id: 'u2', username: 'minh', email: '', firstName: 'Minh', lastName: 'Nguyễn Văn', fullName: 'Nguyễn Văn Minh', role: 'staff', createdAt: '' }, content: 'Mọi người nhớ phủ ceramic bảo vệ sơn xe mùa mưa này nhé!', likes: 5, createdAt: '2024-08-11T11:30:00Z' },
-  ];
+  // Keep local post in sync with Redux store (e.g. after like)
+  useEffect(() => {
+    const fromStore = items.find(p => p.id === post?.id);
+    if (fromStore) setPost(fromStore);
+  }, [items]);
 
   const handleSendComment = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!commentText.trim()) return;
+    if (!commentText.trim() || !post) return;
     const newC: Comment = {
       id: 'c_' + Date.now(),
       postId: post.id,
@@ -45,6 +62,27 @@ const PostDetailPage: React.FC = () => {
     setCommentText('');
   };
 
+  if (loading) return (
+    <UserLayout>
+      <div className="container" style={{ padding: '5rem 0', textAlign: 'center' }}>
+        <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>⏳</div>
+        <p style={{ color: 'var(--text-muted)' }}>Đang tải bài viết...</p>
+      </div>
+    </UserLayout>
+  );
+
+  if (!post) return (
+    <UserLayout>
+      <div className="container" style={{ padding: '4rem 0', textAlign: 'center' }}>
+        <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>😕</div>
+        <h2>Bài viết không tồn tại hoặc đã bị xóa.</h2>
+        <Link to="/posts" className="btn-back">← Về danh sách tin tức</Link>
+      </div>
+    </UserLayout>
+  );
+
+  const postComments = comments[post.id] || [];
+
   return (
     <UserLayout>
       <div className="page-hero">
@@ -56,29 +94,50 @@ const PostDetailPage: React.FC = () => {
 
       <div className="container post-detail-container">
         <article className="post-detail-main">
-          <div className="post-detail-header">
-            <img src={post.author?.avatar || `https://i.pravatar.cc/48?u=${post.authorId}`} alt="" className="author-avatar-lg" />
-            <div>
-              <div className="author-name-lg">{post.author?.fullName || 'MotoShine Admin'}</div>
-              <div className="post-meta-row"><FiCalendar /> {new Date(post.createdAt).toLocaleDateString('vi-VN')} • {post.likes} Lượt thích</div>
+          {/* Header */}
+          <div className="author-info">
+            <img
+              src={
+                post.authorAvatar ||
+                `https://ui-avatars.com/api/?name=${encodeURIComponent(post.authorName || '61 Team Admin')}&background=1a5cff&color=ffffff&bold=true`
+              }
+              alt={post.authorName || 'Author'}
+              className="author-avatar-lg"
+            />
+            <div className="author-name-lg">{post.authorName || '61 Team Admin'}</div>
+            <div className="post-meta-row">
+              <FiCalendar /> {new Date(post.createdAt).toLocaleDateString('vi-VN', { day: '2-digit', month: 'long', year: 'numeric' })}
+              &nbsp;•&nbsp;{post.likes} Lượt thích
             </div>
           </div>
 
+          {/* Cover image */}
           {post.coverImage && (
             <div className="post-cover-wrap">
               <img src={post.coverImage} alt={post.title} />
             </div>
           )}
 
-          <div className="post-full-content" dangerouslySetInnerHTML={{ __html: post.content }} />
+          {/* Rich content — renders HTML stored from editor */}
+          <div
+            className="post-full-content rte-content"
+            dangerouslySetInnerHTML={{ __html: post.content }}
+          />
 
-          <div className="post-tags-row">
-            {post.tags.map(t => <span key={t} className="tag-chip">#{t}</span>)}
-          </div>
+          {/* Tags */}
+          {post.tags && post.tags.length > 0 && (
+            <div className="post-tags-row">
+              {post.tags.map(t => <span key={t} className="tag-chip">#{t}</span>)}
+            </div>
+          )}
 
+          {/* Reaction bar */}
           <div className="post-reaction-bar">
-            <button className={`reaction-btn ${post.isLiked ? 'liked' : ''}`} onClick={() => dispatch(toggleLike(post.id))}>
-              <FiHeart /> <span>{post.likes} Thích</span>
+            <button
+              className={`reaction-btn ${post.isLikedByCurrentUser ? 'liked' : ''}`}
+              onClick={() => dispatch(likePostThunk(post.id))}
+            >
+              <FiHeart style={{ fill: post.isLikedByCurrentUser ? 'currentColor' : 'none', color: post.isLikedByCurrentUser ? 'var(--danger)' : 'inherit' }} /> <span>{post.likes} Thích</span>
             </button>
             <button className="reaction-btn" onClick={() => navigator.clipboard.writeText(window.location.href)}>
               <FiShare2 /> <span>Chia sẻ</span>
@@ -89,18 +148,26 @@ const PostDetailPage: React.FC = () => {
           <section className="comments-section">
             <h3 className="comments-title">Bình Luận ({postComments.length})</h3>
 
-            {/* Form */}
             <form onSubmit={handleSendComment} className="comment-form">
-              <img src={user?.avatar || 'https://i.pravatar.cc/40?img=33'} alt="" className="user-avatar-sm" />
-              <input type="text" placeholder={isAuthenticated ? 'Viết bình luận của bạn...' : 'Đăng nhập để viết bình luận (hoặc gửi dưới danh nghĩa Khách)...'} value={commentText} onChange={e => setCommentText(e.target.value)} id="comment-input" />
+              <UserAvatar src={user?.avatar || user?.avatarUrl} name={user?.fullName || user?.username} size={36} />
+              <input
+                type="text"
+                placeholder={isAuthenticated ? 'Viết bình luận của bạn...' : 'Gõ bình luận của bạn...'}
+                value={commentText}
+                onChange={e => setCommentText(e.target.value)}
+                id="comment-input"
+              />
               <button type="submit" className="comment-send-btn" id="comment-send"><FiSend /></button>
             </form>
 
-            {/* List */}
             <div className="comments-list">
-              {postComments.map(c => (
+              {postComments.length === 0 ? (
+                <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '1.5rem 0', fontSize: '0.9rem' }}>
+                  Chưa có bình luận nào. Hãy là người đầu tiên chia sẻ!
+                </div>
+              ) : postComments.map(c => (
                 <div key={c.id} className="comment-item">
-                  <img src={c.author?.avatar || `https://i.pravatar.cc/36?u=${c.authorId}`} alt="" className="comment-avatar" />
+                  <UserAvatar src={c.author?.avatar || c.author?.avatarUrl} name={c.author?.fullName || c.author?.username} size={36} />
                   <div className="comment-body">
                     <div className="comment-author-name">{c.author?.fullName}</div>
                     <div className="comment-text">{c.content}</div>

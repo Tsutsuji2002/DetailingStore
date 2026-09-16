@@ -3,10 +3,12 @@ import { Link } from 'react-router-dom';
 import { FiX, FiShoppingCart, FiTrash2, FiPlus, FiMinus } from 'react-icons/fi';
 import { useAppDispatch, useAppSelector } from '@/hooks/useAppStore';
 import { toggleCart, removeFromCart, updateQuantity } from '@/features/cartSlice';
+import { useToast } from '@/context/ToastContext';
 import './CartDrawer.css';
 
 const CartDrawer: React.FC = () => {
   const dispatch = useAppDispatch();
+  const { showRemoveFromCartToast } = useToast();
   const { items, isOpen } = useAppSelector(s => s.cart);
 
   const subtotal = items.reduce((acc, i) => acc + (i.product.discountPrice || i.product.price) * i.quantity, 0);
@@ -15,6 +17,18 @@ const CartDrawer: React.FC = () => {
   if (!isOpen) return null;
 
   const fmt = (n: number) => n.toLocaleString('vi-VN') + '₫';
+
+  const handleRemove = (name: string, id: string) => {
+    dispatch(removeFromCart(id));
+    showRemoveFromCartToast(name);
+  };
+
+  const handleUpdateQty = (name: string, id: string, newQty: number) => {
+    if (newQty <= 0) {
+      showRemoveFromCartToast(name);
+    }
+    dispatch(updateQuantity({ id, quantity: newQty }));
+  };
 
   return (
     <>
@@ -44,12 +58,12 @@ const CartDrawer: React.FC = () => {
                   <div className="cart-item-name">{item.product.name}</div>
                   <div className="cart-item-price">{fmt(item.product.discountPrice || item.product.price)}</div>
                   <div className="cart-item-qty">
-                    <button className="qty-btn" onClick={() => dispatch(updateQuantity({ id: item.product.id, quantity: item.quantity - 1 }))}><FiMinus /></button>
+                    <button className="qty-btn" onClick={() => handleUpdateQty(item.product.name, item.product.id, item.quantity - 1)}><FiMinus /></button>
                     <span>{item.quantity}</span>
-                    <button className="qty-btn" onClick={() => dispatch(updateQuantity({ id: item.product.id, quantity: item.quantity + 1 }))}><FiPlus /></button>
+                    <button className="qty-btn" onClick={() => handleUpdateQty(item.product.name, item.product.id, item.quantity + 1)}><FiPlus /></button>
                   </div>
                 </div>
-                <button className="cart-item-remove" onClick={() => dispatch(removeFromCart(item.product.id))}><FiTrash2 /></button>
+                <button className="cart-item-remove" onClick={() => handleRemove(item.product.name, item.product.id)}><FiTrash2 /></button>
               </div>
             ))
           )}

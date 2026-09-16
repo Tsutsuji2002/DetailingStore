@@ -38,6 +38,22 @@ namespace DetailingStore.Api.Models
         [ForeignKey(nameof(AssignedStaffId))]
         public User? AssignedStaff { get; set; }
 
+        [Column("license_plate")]
+        [MaxLength(50)]
+        public string LicensePlate { get; set; } = string.Empty;
+
+        [Column("vehicle_model")]
+        [MaxLength(100)]
+        public string VehicleModel { get; set; } = string.Empty;
+
+        [Column("customer_name")]
+        [MaxLength(100)]
+        public string CustomerName { get; set; } = string.Empty;
+
+        [Column("customer_phone")]
+        [MaxLength(20)]
+        public string? CustomerPhone { get; set; }
+
         [Column("booking_date")]
         public DateOnly BookingDate { get; set; }
 
@@ -49,6 +65,10 @@ namespace DetailingStore.Api.Models
 
         [Column("notes")]
         public string? Notes { get; set; }
+
+        [Column("estimated_completion")]
+        [MaxLength(50)]
+        public string? EstimatedCompletion { get; set; }
 
         [Column("total_price", TypeName = "decimal(12,2)")]
         public decimal TotalPrice { get; set; }

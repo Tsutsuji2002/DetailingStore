@@ -1,15 +1,24 @@
-import React, { useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useMemo } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { FiSearch, FiStar, FiShoppingCart, FiFilter } from 'react-icons/fi';
 import UserLayout from '@/components/layout/UserLayout';
 import { useAppDispatch, useAppSelector } from '@/hooks/useAppStore';
-import { setCategory, setSearch, setSort } from '@/features/productsSlice';
+import { setCategory, setSearch, setSort, fetchProductsThunk, fetchCategoriesThunk } from '@/features/productsSlice';
 import { addToCart } from '@/features/cartSlice';
 import './ProductsPage.css';
 
+import { useToast } from '@/context/ToastContext';
+
 const ProductsPage: React.FC = () => {
+  const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const { showAddToCartToast } = useToast();
   const { items, categories, selectedCategory, searchQuery, sortBy } = useAppSelector(s => s.products);
+
+  useEffect(() => {
+    dispatch(fetchProductsThunk());
+    dispatch(fetchCategoriesThunk());
+  }, [dispatch]);
 
   const filtered = useMemo(() => {
     let list = [...items].filter(p => p.isActive);
@@ -84,16 +93,18 @@ const ProductsPage: React.FC = () => {
             ) : filtered.map(p => {
               const hasDiscount = !!p.discountPrice;
               const discount = hasDiscount ? Math.round((1 - p.discountPrice! / p.price) * 100) : 0;
+              const targetUrl = `/products/${p.slug || p.id}`;
+
               return (
                 <div key={p.id} className="product-card">
-                  <Link to={`/products/${p.slug}`} className="product-card-img">
-                    <img src={p.images[0]} alt={p.name} />
+                  <Link to={targetUrl} className="product-card-img">
+                    <img src={p.images[0] || 'https://placehold.co/600x400/1e293b/94a3b8?text=Product'} alt={p.name} />
                     {hasDiscount && <span className="discount-badge">-{discount}%</span>}
                     {p.stock === 0 && <div className="out-of-stock">Hết Hàng</div>}
                   </Link>
                   <div className="product-card-body">
                     {p.brand && <div className="product-brand">{p.brand}</div>}
-                    <Link to={`/products/${p.slug}`} className="product-name">{p.name}</Link>
+                    <Link to={targetUrl} className="product-name">{p.name}</Link>
                     <div className="product-rating">
                       <FiStar className="star-icon" />
                       <span>{p.rating}</span>
@@ -110,7 +121,12 @@ const ProductsPage: React.FC = () => {
                     <button
                       className="add-to-cart-btn"
                       disabled={p.stock === 0}
-                      onClick={() => dispatch(addToCart(p))}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        dispatch(addToCart(p));
+                        showAddToCartToast(p.name, p.images[0]);
+                      }}
                       id={`add-cart-${p.id}`}>
                       <FiShoppingCart /> {p.stock === 0 ? 'Hết Hàng' : 'Thêm Vào Giỏ'}
                     </button>

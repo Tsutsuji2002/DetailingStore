@@ -6,18 +6,18 @@ import type {
 // ── Users ──────────────────────────────────────────────
 export const SAMPLE_USERS: User[] = [
   {
-    id: 'u1', username: 'admin', email: 'admin@motoshine.vn', firstName: 'Viên', lastName: 'Quản Trị', fullName: 'Quản Trị Viên',
-    role: 'admin', avatar: 'https://i.pravatar.cc/80?img=1', phone: '0901234567',
+    id: 'u1', username: 'admin', email: 'admin@61team.vn', firstName: 'Viên', lastName: 'Quản Trị', fullName: 'Quản Trị Viên',
+    role: 'admin', phone: '0901234567',
     address: '123 Đường Lý Thường Kiệt, Q.10, TP.HCM', createdAt: '2024-01-01T00:00:00Z',
   },
   {
-    id: 'u2', username: 'minh_staff', email: 'minh@motoshine.vn', firstName: 'Minh', lastName: 'Nguyễn Văn', fullName: 'Nguyễn Văn Minh',
-    role: 'staff', avatar: 'https://i.pravatar.cc/80?img=12', phone: '0912345678',
+    id: 'u2', username: 'minh_staff', email: 'minh@61team.vn', firstName: 'Minh', lastName: 'Nguyễn Văn', fullName: 'Nguyễn Văn Minh',
+    role: 'staff', phone: '0912345678',
     address: 'Bình Thạnh, TP.HCM', createdAt: '2024-03-15T00:00:00Z',
   },
   {
     id: 'u3', username: 'customer1', email: 'khang@gmail.com', firstName: 'Khang', lastName: 'Trần Văn', fullName: 'Trần Văn Khang',
-    role: 'customer', avatar: 'https://i.pravatar.cc/80?img=33', phone: '0923456789',
+    role: 'customer', phone: '0923456789',
     address: 'Gò Vấp, TP.HCM', createdAt: '2024-06-20T00:00:00Z',
   },
 ];
@@ -25,7 +25,7 @@ export const SAMPLE_USERS: User[] = [
 // ── Shop Info ──────────────────────────────────────────
 export const SHOP_INFO: ShopInfo = {
   name: 'Detailing Store',
-  logoIcon: '🏍️',
+  logoIcon: undefined,
   tagline: 'Chuyên Detailing & Sửa Chữa Xe Máy Cao Cấp',
   address: '123 Đường Lý Thường Kiệt, Phường 7, Quận 10, TP. Hồ Chí Minh',
   phone: '0901 234 567',
@@ -43,15 +43,70 @@ export const SHOP_INFO: ShopInfo = {
 
 // ── Service Categories ─────────────────────────────────
 export const SAMPLE_SERVICE_CATEGORIES: ServiceCategory[] = [
-  { id: 'sc1', name: 'Detailing', slug: 'detailing', icon: '✨' },
-  { id: 'sc2', name: 'Sửa Chữa', slug: 'repair', icon: '🔧' },
-  { id: 'sc3', name: 'Bảo Dưỡng', slug: 'maintenance', icon: '⚙️' },
-  { id: 'sc4', name: 'Nâng Cấp', slug: 'upgrade', icon: '🚀' },
-  { id: 'sc5', name: 'Đồng Sơn', slug: 'paint', icon: '🎨' },
+  { id: 'sc1', name: 'Detailing', slug: 'detailing' },
+  { id: 'sc2', name: 'Sửa Chữa', slug: 'repair' },
+  { id: 'sc3', name: 'Bảo Dưỡng', slug: 'maintenance' },
+  { id: 'sc4', name: 'Nâng Cấp', slug: 'upgrade' },
+  { id: 'sc5', name: 'Đồng Sơn', slug: 'paint' },
 ];
 
 // ── Services ───────────────────────────────────────────
-export const SAMPLE_SERVICES: Service[] = [];
+export const SAMPLE_SERVICES: Service[] = [
+  {
+    id: 's1', name: 'Detailing Toàn Diện Premium', slug: 'detailing-premium',
+    categoryId: 'sc1', description: 'Dịch vụ làm đẹp xe toàn diện với các sản phẩm cao cấp. Bao gồm rửa xe chuyên nghiệp, đánh bóng sơn, dưỡng nhựa/cao su, vệ sinh khoang máy và phủ ceramic/wax bảo vệ lâu dài.',
+    shortDescription: 'Detailing xe toàn diện với sản phẩm cao cấp, phủ ceramic bảo vệ.',
+    priceFrom: 800000, priceTo: 2500000, duration: '4-8 giờ',
+    images: ['https://images.unsplash.com/photo-1607860108855-64acf2078ed9?w=600', 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600'],
+    tags: ['detailing', 'ceramic', 'cao cấp', 'bảo vệ sơn'], isActive: true,
+    createdAt: '2024-01-10T00:00:00Z', updatedAt: '2024-08-01T00:00:00Z',
+  },
+  {
+    id: 's2', name: 'Rửa Xe & Dưỡng Xe Cơ Bản', slug: 'rua-xe-co-ban',
+    categoryId: 'sc1', description: 'Rửa xe sạch sẽ, lau khoang máy, dưỡng nhựa, xi bóng bánh xe. Phù hợp cho xe máy các loại.',
+    shortDescription: 'Rửa xe cơ bản + dưỡng xe sạch bóng.',
+    priceFrom: 50000, priceTo: 150000, duration: '1-2 giờ',
+    images: ['https://images.unsplash.com/photo-1545558014-8692077e9b5c?w=600'],
+    tags: ['rửa xe', 'cơ bản'], isActive: true,
+    createdAt: '2024-01-12T00:00:00Z', updatedAt: '2024-07-01T00:00:00Z',
+  },
+  {
+    id: 's3', name: 'Sửa Chữa Động Cơ Tổng Thể', slug: 'sua-chua-dong-co',
+    categoryId: 'sc2', description: 'Chẩn đoán và sửa chữa toàn bộ hệ thống động cơ: bóc máy, vệ sinh kim phun, kiểm tra xu páp, thay các chi tiết bị mòn. Bảo hành 3 tháng sau sửa.',
+    shortDescription: 'Sửa chữa động cơ toàn diện, bảo hành 3 tháng.',
+    priceFrom: 500000, priceTo: 3000000, duration: '1-3 ngày',
+    images: ['https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=600'],
+    tags: ['động cơ', 'sửa chữa', 'bảo hành'], isActive: true,
+    createdAt: '2024-02-01T00:00:00Z', updatedAt: '2024-08-05T00:00:00Z',
+  },
+  {
+    id: 's4', name: 'Bảo Dưỡng Định Kỳ', slug: 'bao-duong-dinh-ky',
+    categoryId: 'sc3', description: 'Thay nhớt, lọc nhớt, kiểm tra thắng, vòng bi, dây cu-roa, xích sên, đèn chiếu sáng. Tư vấn toàn bộ tình trạng xe.',
+    shortDescription: 'Thay nhớt + kiểm tra toàn xe định kỳ.',
+    priceFrom: 200000, priceTo: 500000, duration: '2-3 giờ',
+    images: ['https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=600'],
+    tags: ['bảo dưỡng', 'thay nhớt', 'định kỳ'], isActive: true,
+    createdAt: '2024-02-15T00:00:00Z', updatedAt: '2024-07-10T00:00:00Z',
+  },
+  {
+    id: 's5', name: 'Đồng Sơn & Phục Hồi Màu', slug: 'dong-son',
+    categoryId: 'sc5', description: 'Sơn lại xe, thay tem decal, phục hồi màu sơn bị oxy hóa. Sử dụng sơn ô tô cao cấp, màu chính xác theo code.',
+    shortDescription: 'Sơn xe, đồng sơn, thay tem decal cao cấp.',
+    priceFrom: 1500000, priceTo: 8000000, duration: '3-7 ngày',
+    images: ['https://images.unsplash.com/photo-1565043589221-1a6fd9ae45c7?w=600'],
+    tags: ['đồng sơn', 'phục hồi', 'tem xe'], isActive: true,
+    createdAt: '2024-03-01T00:00:00Z', updatedAt: '2024-08-10T00:00:00Z',
+  },
+  {
+    id: 's6', name: 'Nâng Cấp Hệ Thống Đèn LED', slug: 'nang-cap-den-led',
+    categoryId: 'sc4', description: 'Độ đèn LED bi cầu, đèn xi nhan LED, đèn hậu LED. Đảm bảo đúng chuẩn, sáng rõ, tiết kiệm điện.',
+    shortDescription: 'Độ đèn bi cầu LED + LED toàn bộ xe.',
+    priceFrom: 800000, priceTo: 3500000, duration: '2-6 giờ',
+    images: ['https://images.unsplash.com/photo-1558098329-a11cff621064?w=600'],
+    tags: ['led', 'đèn', 'nâng cấp', 'độ xe'], isActive: true,
+    createdAt: '2024-04-01T00:00:00Z', updatedAt: '2024-08-12T00:00:00Z',
+  },
+];
 
 // ── Product Categories ─────────────────────────────────
 export const SAMPLE_PRODUCT_CATEGORIES: ProductCategory[] = [
@@ -142,7 +197,7 @@ export const SAMPLE_POSTS: Post[] = [
     createdAt: '2024-08-10T08:00:00Z', updatedAt: '2024-08-10T08:00:00Z',
   },
   {
-    id: 'post2', title: 'MotoShine Ra Mắt Dịch Vụ Detailing Nano Ceramic Mới!',
+    id: 'post2', title: '61 Team Ra Mắt Dịch Vụ Detailing Nano Ceramic Mới!',
     slug: 'ra-mat-dich-vu-nano-ceramic',
     content: `<p>Chúng tôi vừa chính thức ra mắt gói dịch vụ <strong>Nano Ceramic Premium</strong> – đỉnh cao bảo vệ sơn xe với công nghệ ceramic thế hệ mới nhất từ Nhật Bản.</p>
 <p>Gói dịch vụ bao gồm:</p>
@@ -193,7 +248,7 @@ export const SAMPLE_JOBS: Job[] = [
   {
     id: 'j3', title: 'Học Nghề Sửa Xe (Apprentice)', type: 'apprentice', department: 'Kỹ Thuật',
     location: 'TP. Hồ Chí Minh',
-    description: 'Chương trình học nghề 6 tháng tại MotoShine. Học viên sẽ được hướng dẫn trực tiếp bởi thợ lành nghề có trên 10 năm kinh nghiệm.',
+    description: 'Chương trình học nghề 6 tháng tại 61 Team. Học viên sẽ được hướng dẫn trực tiếp bởi thợ lành nghề có trên 10 năm kinh nghiệm.',
     requirements: ['Từ 16 tuổi trở lên', 'Đam mê sửa xe', 'Có khả năng học hỏi', 'Không yêu cầu bằng cấp'],
     benefits: ['Trợ cấp học nghề 2–3 triệu/tháng', 'Được nhận vào làm toàn thời gian sau khi tốt nghiệp', 'Học phí: MIỄN PHÍ'],
     isActive: true, createdAt: '2024-08-08T00:00:00Z', updatedAt: '2024-08-08T00:00:00Z',
@@ -205,15 +260,15 @@ export const SAMPLE_NOTIFICATIONS: Notification[] = [
   { id: 'n1', type: 'order', title: 'Đơn hàng đã được xác nhận', message: 'Đơn hàng #DH2024081401 của bạn đã được xác nhận và đang chuẩn bị.', isRead: false, createdAt: '2024-08-14T10:00:00Z', link: '/account' },
   { id: 'n2', type: 'info', title: 'Khuyến mãi mùa mưa', message: 'Giảm 20% toàn bộ dịch vụ detailing từ 15/8 đến 30/8!', isRead: false, createdAt: '2024-08-13T09:00:00Z', link: '/services' },
   { id: 'n3', type: 'success', title: 'Lịch hẹn được xác nhận', message: 'Lịch hẹn bảo dưỡng xe vào 9:00 sáng ngày 16/8 đã được xác nhận.', isRead: true, createdAt: '2024-08-12T15:00:00Z' },
-  { id: 'n4', type: 'message', title: 'Tin nhắn mới từ MotoShine', message: 'Nhân viên CSKH đã trả lời câu hỏi của bạn.', isRead: true, createdAt: '2024-08-11T11:00:00Z' },
+  { id: 'n4', type: 'message', title: 'Tin nhắn mới từ 61 Team', message: 'Nhân viên CSKH đã trả lời câu hỏi của bạn.', isRead: true, createdAt: '2024-08-11T11:00:00Z' },
 ];
 
 // ── Schedule Shifts ────────────────────────────────────
 export const SAMPLE_SHIFTS: ScheduleShift[] = [
-  { id: 'sh1', staffId: 'u2', staffName: 'Nguyễn Văn Minh', date: '2024-08-14', shift: 'morning', startTime: '07:30', endTime: '16:30', notes: 'Ca sáng – khu vực detailing', color: '#1a5cff' },
-  { id: 'sh2', staffId: 'u2', staffName: 'Nguyễn Văn Minh', date: '2024-08-15', shift: 'morning', startTime: '07:30', endTime: '16:30', color: '#1a5cff' },
-  { id: 'sh3', staffId: 'u3', staffName: 'Trần Văn An', date: '2024-08-14', shift: 'afternoon', startTime: '13:00', endTime: '20:00', notes: 'Ca chiều – khu vực sửa chữa', color: '#7c3aed' },
-  { id: 'sh4', staffId: 'u3', staffName: 'Trần Văn An', date: '2024-08-16', shift: 'morning', startTime: '07:30', endTime: '12:00', color: '#7c3aed' },
+  { id: 'sh1', staffId: 'u2', shiftTypeId: 'morning', date: '2024-08-14', notes: 'Ca sáng – khu vực detailing' },
+  { id: 'sh2', staffId: 'u2', shiftTypeId: 'morning', date: '2024-08-15' },
+  { id: 'sh3', staffId: 'u3', shiftTypeId: 'afternoon', date: '2024-08-14', notes: 'Ca chiều – khu vực sửa chữa' },
+  { id: 'sh4', staffId: 'u3', shiftTypeId: 'morning', date: '2024-08-16' },
 ];
 
 // ── Chat ───────────────────────────────────────────────
@@ -226,19 +281,20 @@ export const SAMPLE_CONVERSATIONS: ChatConversation[] = [
   {
     id: 'conv2', participants: [SAMPLE_USERS[0], SAMPLE_USERS[1]],
     lastMessage: { id: 'm5', conversationId: 'conv2', senderId: 'u1', content: 'Nhớ kiểm tra xe của khách VIP nhé!', isRead: false, timestamp: '2024-08-14T11:00:00Z' },
-    unreadCount: 1, isGroup: true, groupName: 'Team MotoShine', groupAvatar: 'https://i.pravatar.cc/40?img=50',
+    unreadCount: 1, isGroup: true, groupName: 'Team 61', groupAvatar: 'https://i.pravatar.cc/40?img=50',
   },
 ];
 
+// ── Chat Messages ──────────────────────────────────────
 export const SAMPLE_MESSAGES: Record<string, ChatMessage[]> = {
   conv1: [
-    { id: 'm1', conversationId: 'conv1', senderId: 'u1', senderName: 'Admin MotoShine', content: 'Minh ơi, hôm nay có xe Honda Winner cần detailing lúc 2h chiều nhé.', isRead: true, timestamp: '2024-08-14T08:00:00Z' },
+    { id: 'm1', conversationId: 'conv1', senderId: 'u1', senderName: 'Admin 61 Team', content: 'Minh ơi, hôm nay có xe Honda Winner cần detailing lúc 2h chiều nhé.', isRead: true, timestamp: '2024-08-14T08:00:00Z' },
     { id: 'm2', conversationId: 'conv1', senderId: 'u2', senderName: 'Nguyễn Văn Minh', content: 'Vâng anh, em đã ghi nhận rồi ạ.', isRead: true, timestamp: '2024-08-14T08:05:00Z' },
     { id: 'm3', conversationId: 'conv1', senderId: 'u2', senderName: 'Nguyễn Văn Minh', content: 'Ok anh, em sẽ xử lý ngay!', isRead: true, timestamp: '2024-08-14T09:30:00Z' },
   ],
   conv2: [
     { id: 'm4', conversationId: 'conv2', senderId: 'u2', senderName: 'Nguyễn Văn Minh', content: 'Chào mọi người! Sáng nay ca đông không ạ?', isRead: true, timestamp: '2024-08-14T10:30:00Z' },
-    { id: 'm5', conversationId: 'conv2', senderId: 'u1', senderName: 'Admin MotoShine', content: 'Nhớ kiểm tra xe của khách VIP nhé!', isRead: false, timestamp: '2024-08-14T11:00:00Z' },
+    { id: 'm5', conversationId: 'conv2', senderId: 'u1', senderName: 'Admin 61 Team', content: 'Nhớ kiểm tra xe của khách VIP nhé!', isRead: false, timestamp: '2024-08-14T11:00:00Z' },
   ],
 };
 

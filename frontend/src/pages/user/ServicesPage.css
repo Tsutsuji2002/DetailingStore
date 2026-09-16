@@ -105,7 +105,17 @@
 .scf-img { position: relative; height: 200px; overflow: hidden; }
 .scf-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
 .service-card-full:hover .scf-img img { transform: scale(1.05); }
-.scf-tags { position: absolute; top: 0.75rem; left: 0.75rem; display: flex; gap: 0.3rem; flex-wrap: wrap; }
+.scf-tags { position: absolute; bottom: 0.75rem; left: 0.75rem; display: flex; gap: 0.4rem; flex-wrap: wrap; z-index: 1; }
+.scf-tags .tag-chip { 
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
 
 .scf-body { padding: 1.25rem; flex: 1; display: flex; flex-direction: column; }
 .scf-category-label { font-size: 0.75rem; font-weight: 600; color: var(--accent-primary); margin-bottom: 0.4rem; }
@@ -129,3 +139,85 @@
 .scf-cta { display: flex; align-items: center; gap: 0.25rem; font-size: 0.8rem; font-weight: 600; color: var(--accent-primary); }
 
 .empty-state { text-align: center; padding: 3rem; color: var(--text-muted); grid-column: 1/-1; }
+
+/* Responsive Mobile Layout Improvements */
+@media (max-width: 768px) {
+  .page-hero {
+    padding: 2rem 1rem 1.75rem;
+  }
+  .page-hero-title {
+    font-size: 1.75rem;
+  }
+  .page-hero-sub {
+    font-size: 0.875rem;
+  }
+
+  .filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    padding: 1rem 0 0.5rem;
+  }
+
+  .search-box {
+    width: 100%;
+    min-width: 100%;
+  }
+
+  .filter-cats {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 0.5rem;
+    padding: 0.25rem 0.25rem 0.5rem 0.25rem;
+    width: 100%;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+  }
+
+  .filter-cats::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+
+  .cat-chip {
+    flex-shrink: 0;
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+  }
+
+  .sort-select-wrap {
+    width: 100%;
+    justify-content: space-between;
+    padding: 0.5rem 0.875rem;
+  }
+
+  .sort-select-wrap select {
+    width: 100%;
+  }
+
+  .services-grid-full {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .scf-img {
+    height: 170px;
+  }
+
+  .scf-body {
+    padding: 1rem;
+  }
+
+  .scf-title {
+    font-size: 1rem;
+  }
+
+  .scf-desc {
+    font-size: 0.825rem;
+  }
+
+  .scf-footer {
+    gap: 0.5rem;
+  }
+}
+

@@ -2,11 +2,25 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FiArrowRight, FiCalendar, FiClock, FiStar, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import UserLayout from '@/components/layout/UserLayout';
-import { useAppSelector } from '@/hooks/useAppStore';
-import { SAMPLE_POSTS, SAMPLE_SHIFTS } from '@/data/sampleData';
+import { contentApi } from '@/services/api/contentApi';
+import { serviceApi, BackendService } from '@/services/api/serviceApi';
+import { productApi, BackendProduct } from '@/services/api/productApi';
+import postApi, { PostDto } from '@/services/api/postApi';
 import './HomePage.css';
 
-const SLIDES = [
+interface SlideItem {
+  id: number | string;
+  tag: string;
+  title: string;
+  desc: string;
+  cta: { label: string; to: string };
+  ctaSecond: { label: string; to: string };
+  bg: string;
+  img: string;
+  accent: string;
+}
+
+const DEFAULT_SLIDES: SlideItem[] = [
   {
     id: 1, tag: '✨ Dịch Vụ Nổi Bật',
     title: 'Detailing Xe Máy\nCao Cấp Tại TP.HCM',
@@ -49,8 +63,6 @@ const MiniCalendar: React.FC = () => {
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-  const shiftDates = new Set(SAMPLE_SHIFTS.map(s => s.date));
-
   const cells: (number | null)[] = [];
   for (let i = 0; i < firstDay; i++) cells.push(null);
   for (let d = 1; d <= daysInMonth; d++) cells.push(d);
@@ -71,49 +83,103 @@ const MiniCalendar: React.FC = () => {
       <div className="cal-grid">
         {cells.map((d, i) => {
           if (!d) return <span key={i} className="cal-cell empty" />;
-          const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-          const hasShift = shiftDates.has(dateStr);
           const isToday = d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
           return (
-            <span key={i} className={`cal-cell ${isToday ? 'today' : ''} ${hasShift ? 'has-event' : ''}`}>
+            <span key={i} className={`cal-cell ${isToday ? 'today' : ''}`}>
               {d}
-              {hasShift && <span className="cal-dot" />}
             </span>
           );
         })}
-      </div>
-      <div className="cal-legend">
-        <span className="legend-dot has-event" /> <span>Có lịch hẹn</span>
       </div>
     </div>
   );
 };
 
 const HomePage: React.FC = () => {
-  const services = useAppSelector(s => s.services.items);
-  const storeSlides = useAppSelector(s => s.shop.heroSlides);
-  const activeSlides = storeSlides && storeSlides.length > 0 ? storeSlides.map(s => ({
-    id: s.id,
-    tag: s.tag || '✨ Dịch Vụ Nổi Bật',
-    title: s.title || '',
-    desc: s.desc || '',
-    cta: { label: 'Xem Dịch Vụ', to: '/services' },
-    ctaSecond: { label: 'Đặt Lịch', to: '/contact' },
-    bg: 'linear-gradient(135deg, #0d1b3e 0%, #1a5cff 100%)',
-    img: s.img,
-    accent: '#4d8aff',
-  })) : SLIDES;
-
-  const [slide, setSlide] = useState(0);
+  const [slides, setSlides] = useState<SlideItem[]>(DEFAULT_SLIDES);
+  const [services, setServices] = useState<any[]>([]);
+  const [posts, setPosts] = useState<any[]>([]);
+  const [products, setProducts] = useState<BackendProduct[]>([]);
+  const [slideIndex, setSlideIndex] = useState(0);
   const [paused, setPaused] = useState(false);
 
   useEffect(() => {
-    if (paused || activeSlides.length === 0) return;
-    const t = setInterval(() => setSlide(s => (s + 1) % activeSlides.length), 5000);
-    return () => clearInterval(t);
-  }, [paused, activeSlides.length]);
+    // Fetch dynamic hero slides
+    contentApi.getSlides()
+      .then(dbSlides => {
+        if (dbSlides && dbSlides.length > 0) {
+          const mapped: SlideItem[] = dbSlides.map((s, idx) => ({
+            id: s.id,
+            tag: s.tag || '✨ Banner',
+            title: s.title,
+            desc: s.description,
+            // Build CTA based on linkType
+            ...((): { cta: SlideItem['cta']; ctaSecond: SlideItem['ctaSecond'] } => {
+              const linkType = s.linkType?.toLowerCase() || 'none';
+              const slug = s.linkedContentSlug || '';
+              const contentPath = linkType === 'service' ? `/services/${slug}`
+                : linkType === 'post' ? `/posts/${slug}`
+                : linkType === 'product' ? `/products/${slug}`
+                : '/services';
 
-  const cur = activeSlides[slide] || activeSlides[0] || SLIDES[0];
+              const primaryCta = linkType !== 'none' && slug
+                ? { label: linkType === 'service' ? 'Xem Dịch Vụ →' : linkType === 'post' ? 'Đọc Bài Viết →' : 'Xem Sản Phẩm →', to: contentPath }
+                : { label: 'Xem Dịch Vụ', to: '/services' };
+
+              const secondaryCta = linkType === 'service' && slug
+                ? { label: 'Lên Lịch', to: `/user/service-requests/new?serviceId=${s.linkedContentId || ''}` }
+                : { label: 'Đặt Lịch', to: '/contact' };
+
+              return { cta: primaryCta, ctaSecond: secondaryCta };
+            })(),
+            bg: idx % 3 === 0
+              ? 'linear-gradient(135deg, #0d1b3e 0%, #1a5cff 100%)'
+              : idx % 3 === 1
+              ? 'linear-gradient(135deg, #1a2235 0%, #7c3aed 100%)'
+              : 'linear-gradient(135deg, #0a1628 0%, #059669 100%)',
+            img: s.imageUrl || 'https://images.unsplash.com/photo-1607860108855-64acf2078ed9?w=700&q=80',
+            accent: idx % 3 === 0 ? '#4d8aff' : idx % 3 === 1 ? '#a78bfa' : '#34d399',
+          }));
+          setSlides(mapped);
+        }
+      })
+      .catch(() => {});
+
+    // Fetch dynamic services
+    serviceApi.getServices()
+      .then(res => {
+        if (res && res.length > 0) {
+          setServices(res);
+        }
+      })
+      .catch(() => {});
+
+    // Fetch dynamic products
+    productApi.getProducts()
+      .then(res => {
+        if (res && res.length > 0) {
+          setProducts(res);
+        }
+      })
+      .catch(() => {});
+
+    // Fetch dynamic posts
+    postApi.getPosts()
+      .then((res: PostDto[]) => {
+        if (res && res.length > 0) {
+          setPosts(res);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (paused || slides.length === 0) return;
+    const t = setInterval(() => setSlideIndex(s => (s + 1) % slides.length), 5000);
+    return () => clearInterval(t);
+  }, [paused, slides.length]);
+
+  const cur = slides[slideIndex] || slides[0] || DEFAULT_SLIDES[0];
 
   return (
     <UserLayout>
@@ -121,7 +187,7 @@ const HomePage: React.FC = () => {
       <section className="hero-section" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
         <div className="hero-bg" style={{ background: cur.bg }} />
         <div className="hero-img-wrap">
-          <img key={slide} src={cur.img} alt="" className="hero-img" />
+          <img key={slideIndex} src={cur.img} alt="" className="hero-img" />
         </div>
         <div className="container hero-content">
           <div className="hero-text">
@@ -136,29 +202,11 @@ const HomePage: React.FC = () => {
         </div>
         {/* Slide Controls */}
         <div className="slide-controls">
-          <button className="slide-arrow" onClick={() => setSlide(s => (s - 1 + activeSlides.length) % activeSlides.length)}><FiChevronLeft /></button>
+          <button className="slide-arrow" onClick={() => setSlideIndex(s => (s - 1 + slides.length) % slides.length)}><FiChevronLeft /></button>
           <div className="slide-dots">
-            {activeSlides.map((_, i) => <button key={i} className={`slide-dot ${i === slide ? 'active' : ''}`} onClick={() => setSlide(i)} />)}
+            {slides.map((_, i) => <button key={i} className={`slide-dot ${i === slideIndex ? 'active' : ''}`} onClick={() => setSlideIndex(i)} />)}
           </div>
-          <button className="slide-arrow" onClick={() => setSlide(s => (s + 1) % activeSlides.length)}><FiChevronRight /></button>
-        </div>
-      </section>
-
-      {/* ── Stats Bar ── */}
-      <section className="stats-bar">
-        <div className="container stats-row">
-          {[
-            { label: 'Khách Hài Lòng', value: '2,000+', icon: '😊' },
-            { label: 'Năm Kinh Nghiệm', value: '8+', icon: '📅' },
-            { label: 'Thợ Lành Nghề', value: '15', icon: '👨‍🔧' },
-            { label: 'Dịch Vụ Cung Cấp', value: '30+', icon: '🛠️' },
-          ].map(s => (
-            <div key={s.label} className="stat-item">
-              <span className="stat-icon">{s.icon}</span>
-              <span className="stat-value">{s.value}</span>
-              <span className="stat-label">{s.label}</span>
-            </div>
-          ))}
+          <button className="slide-arrow" onClick={() => setSlideIndex(s => (s + 1) % slides.length)}><FiChevronRight /></button>
         </div>
       </section>
 
@@ -168,35 +216,29 @@ const HomePage: React.FC = () => {
           <div className="section-header">
             <div>
               <h2 className="section-heading">Dịch Vụ Nổi Bật</h2>
-              <p className="section-subheading">Các dịch vụ được khách hàng tin dùng nhất tại MotoShine</p>
+              <p className="section-subheading">Các dịch vụ được khách hàng tin dùng nhất tại 61 Team</p>
             </div>
             <Link to="/services" className="see-all-link">Xem tất cả <FiArrowRight /></Link>
           </div>
           <div className="services-grid">
-            {services.length > 0 ? (
-              services.slice(0, 3).map(svc => (
-                <Link to={`/services/${svc.slug}`} key={svc.id} className="service-card">
-                  <div className="service-card-img">
-                    <img src={svc.images[0]} alt={svc.name} />
-                    <span className="service-card-tag">
-                      {svc.duration && <><FiClock /> {svc.duration}</>}
-                    </span>
+            {services.slice(0, 3).map(svc => (
+              <Link to={`/services/${svc.slug}`} key={svc.id} className="service-card">
+                <div className="service-card-img">
+                  <img src={svc.images && svc.images.length > 0 ? svc.images[0] : 'https://images.unsplash.com/photo-1607860108855-64acf2078ed9?w=500'} alt={svc.name} />
+                  <span className="service-card-tag">
+                    {svc.duration && <><FiClock /> {svc.duration}</>}
+                  </span>
+                </div>
+                <div className="service-card-body">
+                  <div className="service-card-title">{svc.name}</div>
+                  <div className="service-card-desc">{svc.shortDescription}</div>
+                  <div className="service-card-price">
+                    Từ <strong>{svc.priceFrom.toLocaleString('vi-VN')}₫</strong>
+                    {svc.priceTo && <span className="price-to"> – {svc.priceTo.toLocaleString('vi-VN')}₫</span>}
                   </div>
-                  <div className="service-card-body">
-                    <div className="service-card-title">{svc.name}</div>
-                    <div className="service-card-desc">{svc.shortDescription}</div>
-                    <div className="service-card-price">
-                      Từ <strong>{svc.priceFrom.toLocaleString('vi-VN')}₫</strong>
-                      {svc.priceTo && <span className="price-to"> – {svc.priceTo.toLocaleString('vi-VN')}₫</span>}
-                    </div>
-                  </div>
-                </Link>
-              ))
-            ) : (
-              <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
-                Chưa có dịch vụ nào. Dữ liệu sẽ được hiển thị khi được thêm từ hệ thống.
-              </div>
-            )}
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
       </section>
@@ -211,21 +253,21 @@ const HomePage: React.FC = () => {
               <Link to="/posts" className="see-all-link">Xem tất cả <FiArrowRight /></Link>
             </div>
             <div className="post-list">
-              {SAMPLE_POSTS.map(post => (
+              {posts.slice(0, 3).map(post => (
                 <Link to={`/posts/${post.slug}`} key={post.id} className="post-list-item">
                   <div className="post-list-img">
                     <img src={post.coverImage} alt={post.title} />
                   </div>
                   <div className="post-list-body">
                     <div className="post-list-tags">
-                      {post.tags.slice(0, 2).map(t => <span key={t} className="tag-chip">#{t}</span>)}
+                      {post.tags.slice(0, 2).map((t: string) => <span key={t} className="tag-chip">#{t}</span>)}
                     </div>
                     <div className="post-list-title">{post.title}</div>
                     <div className="post-list-meta">
                       <FiCalendar />
                       {new Date(post.createdAt).toLocaleDateString('vi-VN')}
                       <span className="dot">•</span>
-                      {post.likes} lượt thích
+                      {post.likes || 0} lượt thích
                     </div>
                   </div>
                 </Link>
@@ -264,25 +306,48 @@ const HomePage: React.FC = () => {
             <Link to="/products" className="see-all-link">Xem cửa hàng <FiArrowRight /></Link>
           </div>
           <div className="products-mini-grid">
-            {SAMPLE_POSTS.slice(0, 3).map((_, i) => {
-              const products = [
-                { name: 'Nhớt Honda Ultra Gold', price: '95.000₫', img: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300', rating: 4.7, slug: 'nhot-honda-ultra-gold' },
-                { name: 'Set Hóa Chất CarPro', price: '580.000₫', img: 'https://images.unsplash.com/photo-1607349913338-fca6f58f34cd?w=300', rating: 4.9, slug: 'hoa-chat-carpro' },
-                { name: 'Lốp Michelin Pilot Street', price: '890.000₫', img: 'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=300', rating: 4.8, slug: 'lop-michelin-pilot-street' },
-              ][i];
-              return (
-                <Link to={`/products/${products.slug}`} key={i} className="product-mini-card">
-                  <img src={products.img} alt={products.name} />
+            {products.length > 0 ? (
+              products.slice(0, 3).map(p => (
+                <Link to={`/products/${p.slug || p.id}`} key={p.id} className="product-mini-card">
+                  <img src={p.images && p.images.length > 0 ? p.images[0] : 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300'} alt={p.name} />
                   <div className="product-mini-info">
-                    <div className="product-mini-name">{products.name}</div>
+                    <div className="product-mini-name">{p.name}</div>
                     <div className="product-mini-row">
-                      <span className="product-mini-price">{products.price}</span>
-                      <span className="product-mini-rating"><FiStar /> {products.rating}</span>
+                      <span className="product-mini-price">
+                        {p.discountPrice ? (
+                          <>
+                            <strong>{p.discountPrice.toLocaleString('vi-VN')}₫</strong>
+                            <span style={{ textDecoration: 'line-through', fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: 4 }}>
+                              {p.price.toLocaleString('vi-VN')}₫
+                            </span>
+                          </>
+                        ) : (
+                          `${p.price.toLocaleString('vi-VN')}₫`
+                        )}
+                      </span>
+                      <span className="product-mini-rating"><FiStar /> {p.rating || 5.0}</span>
                     </div>
                   </div>
                 </Link>
-              );
-            })}
+              ))
+            ) : (
+              [
+                { name: 'Nhớt Honda Ultra Gold', price: '95.000₫', img: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300', rating: 4.7, slug: 'nhot-honda-ultra-gold' },
+                { name: 'Set Hóa Chất CarPro', price: '580.000₫', img: 'https://images.unsplash.com/photo-1607349913338-fca6f58f34cd?w=300', rating: 4.9, slug: 'hoa-chat-carpro' },
+                { name: 'Lốp Michelin Pilot Street', price: '890.000₫', img: 'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=300', rating: 4.8, slug: 'lop-michelin-pilot-street' },
+              ].map((p, i) => (
+                <Link to={`/products/${p.slug}`} key={i} className="product-mini-card">
+                  <img src={p.img} alt={p.name} />
+                  <div className="product-mini-info">
+                    <div className="product-mini-name">{p.name}</div>
+                    <div className="product-mini-row">
+                      <span className="product-mini-price">{p.price}</span>
+                      <span className="product-mini-rating"><FiStar /> {p.rating}</span>
+                    </div>
+                  </div>
+                </Link>
+              ))
+            )}
           </div>
         </div>
       </section>

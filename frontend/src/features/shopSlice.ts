@@ -1,15 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import type { ShopInfo } from '@/types';
 import { SHOP_INFO as DEFAULT_SHOP_INFO } from '@/data/sampleData';
-import { contentApi, UpdateContentRequest } from '@/services/api/contentApi';
-
-export interface HeroSlide {
-  id: number | string;
-  tag: string;
-  title: string;
-  desc: string;
-  img: string;
-}
+import shopApi from '@/services/api/shopApi';
 
 const LOCAL_STORAGE_KEY = 'detailing_shop_info';
 
@@ -27,41 +19,37 @@ const loadShopInfo = (): ShopInfo => {
 
 interface ShopState {
   info: ShopInfo;
-  heroSlides: HeroSlide[];
   isLoading: boolean;
   error: string | null;
 }
 
 const initialState: ShopState = {
   info: loadShopInfo(),
-  heroSlides: [
-    { id: 1, tag: '✨ Dịch Vụ Nổi Bật', title: 'Detailing Xe Máy Cao Cấp Tại TP.HCM', desc: 'Phủ Ceramic, đánh bóng sơn, vệ sinh khoang máy chuyên sâu.', img: 'https://images.unsplash.com/photo-1607860108855-64acf2078ed9?w=700&q=80' },
-    { id: 2, tag: '🔧 Sửa Chữa & Bảo Dưỡng', title: 'Kỹ Thuật Chuyên Sâu - Bảo Hành Tận Tâm', desc: 'Đội ngũ thợ 10+ năm kinh nghiệm.', img: 'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=700&q=80' },
-  ],
   isLoading: false,
   error: null,
 };
 
-export const fetchShopContentThunk = createAsyncThunk(
-  'shop/fetchContent',
+// Async Thunks
+export const fetchShopInfoThunk = createAsyncThunk(
+  'shop/fetchInfo',
   async (_, { rejectWithValue }) => {
     try {
-      const data = await contentApi.getContent();
+      const data = await shopApi.getShopInfo();
       return data;
     } catch (err: any) {
-      return rejectWithValue(err.message || 'Không thể lấy thông tin website.');
+      return rejectWithValue(err.message || 'Không thể lấy thông tin cửa hàng.');
     }
   }
 );
 
-export const updateShopContentThunk = createAsyncThunk(
-  'shop/updateContent',
-  async (payload: UpdateContentRequest, { rejectWithValue }) => {
+export const updateShopInfoThunk = createAsyncThunk(
+  'shop/updateInfo',
+  async (payload: Partial<ShopInfo>, { rejectWithValue }) => {
     try {
-      const res = await contentApi.updateContent(payload);
-      return res;
+      const updated = await shopApi.updateShopInfo(payload);
+      return updated;
     } catch (err: any) {
-      return rejectWithValue(err.message || 'Không thể cập nhật nội dung website.');
+      return rejectWithValue(err.message || 'Cập nhật thông tin cửa hàng thất bại.');
     }
   }
 );
@@ -84,48 +72,20 @@ export const shopSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder.addCase(fetchShopContentThunk.fulfilled, (state, action) => {
-      const data = action.payload;
-      state.info = {
-        ...state.info,
-        name: data.shopName || state.info.name,
-        tagline: data.tagline || state.info.tagline,
-        logoUrl: data.logoUrl || undefined,
-        logoIcon: data.logoIcon || state.info.logoIcon || '🏍️',
-      };
+    // Fetch Shop Info
+    builder.addCase(fetchShopInfoThunk.fulfilled, (state, action) => {
+      state.info = { ...DEFAULT_SHOP_INFO, ...action.payload };
       try {
-        if (data.heroSlidesJson) {
-          const parsed = JSON.parse(data.heroSlidesJson);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            state.heroSlides = parsed;
-          }
-        }
-      } catch (e) {
-        console.error('Failed to parse heroSlidesJson', e);
-      }
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state.info));
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state.info));
+      } catch (e) {}
     });
 
-    builder.addCase(updateShopContentThunk.fulfilled, (state, action) => {
-      const data = action.payload.content;
-      state.info = {
-        ...state.info,
-        name: data.shopName || state.info.name,
-        tagline: data.tagline || state.info.tagline,
-        logoUrl: data.logoUrl || undefined,
-        logoIcon: data.logoIcon || state.info.logoIcon || '🏍️',
-      };
+    // Update Shop Info
+    builder.addCase(updateShopInfoThunk.fulfilled, (state, action) => {
+      state.info = { ...state.info, ...action.payload };
       try {
-        if (data.heroSlidesJson) {
-          const parsed = JSON.parse(data.heroSlidesJson);
-          if (Array.isArray(parsed)) {
-            state.heroSlides = parsed;
-          }
-        }
-      } catch (e) {
-        console.error('Failed to parse heroSlidesJson', e);
-      }
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state.info));
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state.info));
+      } catch (e) {}
     });
   },
 });

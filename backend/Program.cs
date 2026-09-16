@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using DetailingStore.Api.Hubs;
 
 void LoadEnvFile(string filePath)
 {
@@ -25,6 +26,8 @@ void LoadEnvFile(string filePath)
     }
 }
 
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
 var currentDir = Directory.GetCurrentDirectory();
 LoadEnvFile(Path.Combine(currentDir, ".env.development"));
 LoadEnvFile(Path.Combine(currentDir, ".env.local"));
@@ -34,19 +37,38 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables();
 
 // 1. Add Controllers support
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // Serialize all enums as their string names (e.g. "Pending" not 0)
+        options.JsonSerializerOptions.Converters.Add(
+            new System.Text.Json.Serialization.JsonStringEnumConverter());
+    });
 
 // 2. Configure EF Core with PostgreSQL (Npgsql)
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options
+        .UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
+        .ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning)));
 
 // 3. Register Dependency Injection Services
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IGoogleAuthService, GoogleAuthService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddSignalR();
+builder.Services.AddSingleton<IKafkaProducerService, KafkaProducerService>();
+builder.Services.AddHostedService<KafkaChatConsumerService>();
+builder.Services.AddHostedService<WorkOrderExpirationService>();
 
 // 4. Configure JWT Bearer Authentication
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-var secretKey = jwtSettings["SecretKey"] ?? "DetailingStore_Super_Secret_Jwt_Security_Key_2026_Key_Must_Be_32_Bytes_Long!";
+var rawSecretKey = jwtSettings["SecretKey"] ?? "";
+// If the config value is still a placeholder (from appsettings.json) fall back to the env var directly,
+// then to the hard-coded development default.
+var secretKey = (!string.IsNullOrEmpty(rawSecretKey) && !rawSecretKey.StartsWith("#{"))
+    ? rawSecretKey
+    : (Environment.GetEnvironmentVariable("JwtSettings__SecretKey")
+       ?? "DetailingStore_Super_Secret_Jwt_Security_Key_2026_Key_Must_Be_32_Bytes_Long!");
 var issuer = jwtSettings["Issuer"] ?? "DetailingStoreApi";
 var audience = jwtSettings["Audience"] ?? "DetailingStoreApp";
 
@@ -174,7 +196,8 @@ app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// 10. Map Controllers
+// 10. Map Controllers & SignalR Hub
 app.MapControllers();
+app.MapHub<ChatHub>("/hubs/chat");
 
 app.Run();

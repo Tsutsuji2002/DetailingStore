@@ -1,6 +1,40 @@
 @MotoShine.Api_HostAddress = http://localhost:5080
+@adminToken = your-admin-jwt-token-here
 
 GET {{MotoShine.Api_HostAddress}}/weatherforecast/
 Accept: application/json
+
+###
+
+# Test GET /api/service-requests/{id}
+# Replace {id} with an actual service request ID
+GET {{MotoShine.Api_HostAddress}}/api/service-requests/00000000-0000-0000-0000-000000000000
+Accept: application/json
+Authorization: Bearer {{adminToken}}
+
+###
+
+# Test GET /api/staff/available
+# Query available staff during a specific time period
+GET {{MotoShine.Api_HostAddress}}/api/staff/available?startTime=2026-01-15T07:30:00&endTime=2026-01-15T11:00:00
+Accept: application/json
+Authorization: Bearer {{adminToken}}
+
+###
+
+# Test PUT /api/service-requests/{id}/accept
+# Accept a service request and create a work order
+# Replace {id} with an actual service request ID in Pending status
+PUT {{MotoShine.Api_HostAddress}}/api/service-requests/00000000-0000-0000-0000-000000000000/accept
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "scheduledStartTime": "2026-01-20T07:30:00",
+  "scheduledEndTime": "2026-01-20T11:00:00",
+  "assignedStaffIds": [],
+  "priceQuote": 500000,
+  "adminNotes": "Customer requested morning slot"
+}
 
 ###

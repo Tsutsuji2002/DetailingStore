@@ -23,6 +23,250 @@ namespace DetailingStore.Api.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("DetailingStore.Api.Models.ChatChannel", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatorId")
+                        .HasColumnType("text")
+                        .HasColumnName("creator_id");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("description");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<bool>("IsDirect")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_direct");
+
+                    b.Property<bool>("IsPublic")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_public");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("name");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("chat_channels");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "thong-bao-chung",
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Thông báo chung từ ban quản lý",
+                            IsActive = true,
+                            IsDirect = false,
+                            IsPublic = true,
+                            Name = "thong-bao-chung"
+                        });
+                });
+
+            modelBuilder.Entity("DetailingStore.Api.Models.ChatChannelMember", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text")
+                        .HasColumnName("id");
+
+                    b.Property<string>("ChannelId")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("channel_id");
+
+                    b.Property<DateTime>("JoinedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("joined_at");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChannelId");
+
+                    b.ToTable("chat_channel_members");
+                });
+
+            modelBuilder.Entity("DetailingStore.Api.Models.ChatMessage", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text")
+                        .HasColumnName("id");
+
+                    b.Property<string>("ChannelId")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("channel_id");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("content");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("SenderAvatar")
+                        .HasColumnType("text")
+                        .HasColumnName("sender_avatar");
+
+                    b.Property<string>("SenderId")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("sender_id");
+
+                    b.Property<string>("SenderName")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("sender_name");
+
+                    b.Property<string>("SenderRole")
+                        .HasColumnType("text")
+                        .HasColumnName("sender_role");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("chat_messages");
+                });
+
+            modelBuilder.Entity("DetailingStore.Api.Models.HeroSlide", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("description");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("image_url");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("LinkType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("link_type");
+
+                    b.Property<Guid?>("LinkedContentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("linked_content_id");
+
+                    b.Property<string>("LinkedContentSlug")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("linked_content_slug");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("sort_order");
+
+                    b.Property<string>("Tag")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("tag");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("title");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("hero_slides");
+                });
+
+            modelBuilder.Entity("DetailingStore.Api.Models.JobPositionEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.PrimitiveCollection<List<string>>("Benefits")
+                        .IsRequired()
+                        .HasColumnType("text[]");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Deadline")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Department")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Location")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.PrimitiveCollection<List<string>>("Requirements")
+                        .IsRequired()
+                        .HasColumnType("text[]");
+
+                    b.Property<string>("Salary")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("job_recruitment");
+                });
+
             modelBuilder.Entity("DetailingStore.Api.Models.MechanicDoc", b =>
                 {
                     b.Property<Guid>("Id")
@@ -41,6 +285,11 @@ namespace DetailingStore.Api.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("category");
+
+                    b.Property<string>("ContentHtml")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("content_html");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -71,6 +320,10 @@ namespace DetailingStore.Api.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
                         .HasColumnName("title");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
 
                     b.Property<string>("VehicleModel")
                         .IsRequired()
@@ -171,6 +424,90 @@ namespace DetailingStore.Api.Migrations
                     b.HasIndex("ProductId");
 
                     b.ToTable("order_items");
+                });
+
+            modelBuilder.Entity("DetailingStore.Api.Models.PostEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("AuthorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("CommentCount")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("CoverImage")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Excerpt")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsPublished")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("MediaType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.PrimitiveCollection<List<string>>("Tags")
+                        .IsRequired()
+                        .HasColumnType("text[]");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuthorId");
+
+                    b.HasIndex("Slug")
+                        .IsUnique();
+
+                    b.ToTable("posts", (string)null);
+                });
+
+            modelBuilder.Entity("DetailingStore.Api.Models.PostLikeEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ClientId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("PostId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PostId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("post_likes", (string)null);
                 });
 
             modelBuilder.Entity("DetailingStore.Api.Models.ProductCategory", b =>
@@ -308,6 +645,28 @@ namespace DetailingStore.Api.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("customer_id");
 
+                    b.Property<string>("CustomerName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("customer_name");
+
+                    b.Property<string>("CustomerPhone")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("customer_phone");
+
+                    b.Property<string>("EstimatedCompletion")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("estimated_completion");
+
+                    b.Property<string>("LicensePlate")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("license_plate");
+
                     b.Property<string>("Notes")
                         .HasColumnType("text")
                         .HasColumnName("notes");
@@ -324,6 +683,12 @@ namespace DetailingStore.Api.Migrations
                     b.Property<decimal>("TotalPrice")
                         .HasColumnType("decimal(12,2)")
                         .HasColumnName("total_price");
+
+                    b.Property<string>("VehicleModel")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("vehicle_model");
 
                     b.HasKey("Id");
 
@@ -442,6 +807,164 @@ namespace DetailingStore.Api.Migrations
                     b.ToTable("services");
                 });
 
+            modelBuilder.Entity("DetailingStore.Api.Models.ServiceRequestEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CustomerEmail")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("customer_email");
+
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("customer_id");
+
+                    b.Property<string>("CustomerName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("customer_name");
+
+                    b.Property<string>("CustomerNotes")
+                        .HasColumnType("text")
+                        .HasColumnName("customer_notes");
+
+                    b.Property<string>("CustomerPhone")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("customer_phone");
+
+                    b.Property<DateOnly>("PreferredDate")
+                        .HasColumnType("date")
+                        .HasColumnName("preferred_date");
+
+                    b.Property<TimeOnly>("PreferredTime")
+                        .HasColumnType("time without time zone")
+                        .HasColumnName("preferred_time");
+
+                    b.Property<Guid>("RequestedServiceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("requested_service_id");
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("reviewed_at");
+
+                    b.Property<Guid?>("ReviewedByAdminId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reviewed_by_admin_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("status");
+
+                    b.Property<string>("VehicleInfo")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("vehicle_info");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("RequestedServiceId");
+
+                    b.HasIndex("ReviewedByAdminId");
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("service_requests");
+                });
+
+            modelBuilder.Entity("DetailingStore.Api.Models.ShopSettingEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("LogoIcon")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("LogoUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("MapEmbedUrl")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Tagline")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<string>("TaxId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("WorkingHours")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("shop_settings");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0000-000000000001"),
+                            Address = "123 Đường Lý Thường Kiệt, Phường 7, Quận 10, TP. Hồ Chí Minh",
+                            Email = "contact@detailingstore.vn",
+                            MapEmbedUrl = "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3919.4508!2d106.6604!3d10.7769!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTDCsDQ2JzM3LjAiTiAxMDbCsDM5JzM3LjQiRQ!5e0!3m2!1svi!2s!4v1600000000000",
+                            Name = "MotoShine",
+                            Phone = "0901 234 567",
+                            Tagline = "Chăm Sóc Xe Máy Chuyên Nghiệp – Đẳng Cấp Bình Dương",
+                            TaxId = "0315678901",
+                            UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            WorkingHours = "Thứ 2 – Thứ 7: 7:30 – 18:30 | Chủ nhật: 8:00 – 16:00"
+                        });
+                });
+
             modelBuilder.Entity("DetailingStore.Api.Models.SiteContent", b =>
                 {
                     b.Property<int>("Id")
@@ -450,11 +973,6 @@ namespace DetailingStore.Api.Migrations
                         .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("HeroSlidesJson")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("hero_slides_json");
 
                     b.Property<string>("LogoIcon")
                         .IsRequired()
@@ -588,6 +1106,230 @@ namespace DetailingStore.Api.Migrations
                     b.ToTable("users");
                 });
 
+            modelBuilder.Entity("DetailingStore.Api.Models.WorkOrderEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AdminNotes")
+                        .HasColumnType("text")
+                        .HasColumnName("admin_notes");
+
+                    b.Property<string>("AssignedStaffIds")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("assigned_staff_ids")
+                        .HasComment("GIN index required for JSONB array queries");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("completed_at");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CreatedByAdminId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by_admin_id");
+
+                    b.Property<string>("CustomerEmail")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("customer_email");
+
+                    b.Property<Guid?>("CustomerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("customer_id");
+
+                    b.Property<string>("CustomerName")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("customer_name");
+
+                    b.Property<string>("CustomerPhone")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("customer_phone");
+
+                    b.Property<Guid?>("OriginServiceRequestId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("origin_service_request_id");
+
+                    b.Property<decimal?>("PriceQuote")
+                        .HasColumnType("decimal(12,2)")
+                        .HasColumnName("price_quote");
+
+                    b.Property<string>("RequestSource")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("request_source");
+
+                    b.Property<DateTime>("ScheduledEndTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("scheduled_end_time");
+
+                    b.Property<DateTime>("ScheduledStartTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("scheduled_start_time");
+
+                    b.Property<string>("ServiceDetails")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("service_details");
+
+                    b.Property<string>("VehicleInfo")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("vehicle_info");
+
+                    b.Property<string>("WorkOrderStatus")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("work_order_status");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByAdminId");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("OriginServiceRequestId");
+
+                    b.HasIndex("ScheduledStartTime");
+
+                    b.HasIndex("WorkOrderStatus");
+
+                    b.ToTable("work_orders");
+                });
+
+            modelBuilder.Entity("DetailingStore.Api.Models.WorkShiftConfigEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Color")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("EndTime")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Icon")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("StartTime")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("work_shift_configs");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "morning",
+                            Color = "#3b82f6",
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            EndTime = "12:00",
+                            IsActive = true,
+                            Name = "Ca Sáng",
+                            StartTime = "07:30",
+                            UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = "afternoon",
+                            Color = "#a855f7",
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            EndTime = "18:30",
+                            IsActive = true,
+                            Name = "Ca Chiều",
+                            StartTime = "13:00",
+                            UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = "full",
+                            Color = "#f59e0b",
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            EndTime = "18:30",
+                            IsActive = true,
+                            Name = "Ca Cả Ngày",
+                            StartTime = "07:30",
+                            UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        });
+                });
+
+            modelBuilder.Entity("DetailingStore.Api.Models.WorkShiftEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Date")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("ShiftTypeId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("StaffId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("work_shifts");
+                });
+
+            modelBuilder.Entity("DetailingStore.Api.Models.ChatChannelMember", b =>
+                {
+                    b.HasOne("DetailingStore.Api.Models.ChatChannel", "Channel")
+                        .WithMany("Members")
+                        .HasForeignKey("ChannelId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Channel");
+                });
+
             modelBuilder.Entity("DetailingStore.Api.Models.Order", b =>
                 {
                     b.HasOne("DetailingStore.Api.Models.User", "Customer")
@@ -614,6 +1356,34 @@ namespace DetailingStore.Api.Migrations
                     b.Navigation("Order");
 
                     b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("DetailingStore.Api.Models.PostEntity", b =>
+                {
+                    b.HasOne("DetailingStore.Api.Models.User", "Author")
+                        .WithMany()
+                        .HasForeignKey("AuthorId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Author");
+                });
+
+            modelBuilder.Entity("DetailingStore.Api.Models.PostLikeEntity", b =>
+                {
+                    b.HasOne("DetailingStore.Api.Models.PostEntity", "Post")
+                        .WithMany("PostLikes")
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DetailingStore.Api.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("Post");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("DetailingStore.Api.Models.ProductEntity", b =>
@@ -661,9 +1431,67 @@ namespace DetailingStore.Api.Migrations
                     b.Navigation("Category");
                 });
 
+            modelBuilder.Entity("DetailingStore.Api.Models.ServiceRequestEntity", b =>
+                {
+                    b.HasOne("DetailingStore.Api.Models.User", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DetailingStore.Api.Models.ServiceEntity", "RequestedService")
+                        .WithMany()
+                        .HasForeignKey("RequestedServiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DetailingStore.Api.Models.User", "ReviewedByAdmin")
+                        .WithMany()
+                        .HasForeignKey("ReviewedByAdminId");
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("RequestedService");
+
+                    b.Navigation("ReviewedByAdmin");
+                });
+
+            modelBuilder.Entity("DetailingStore.Api.Models.WorkOrderEntity", b =>
+                {
+                    b.HasOne("DetailingStore.Api.Models.User", "CreatedByAdmin")
+                        .WithMany()
+                        .HasForeignKey("CreatedByAdminId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DetailingStore.Api.Models.User", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId");
+
+                    b.HasOne("DetailingStore.Api.Models.ServiceRequestEntity", "OriginServiceRequest")
+                        .WithMany()
+                        .HasForeignKey("OriginServiceRequestId");
+
+                    b.Navigation("CreatedByAdmin");
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("OriginServiceRequest");
+                });
+
+            modelBuilder.Entity("DetailingStore.Api.Models.ChatChannel", b =>
+                {
+                    b.Navigation("Members");
+                });
+
             modelBuilder.Entity("DetailingStore.Api.Models.Order", b =>
                 {
                     b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("DetailingStore.Api.Models.PostEntity", b =>
+                {
+                    b.Navigation("PostLikes");
                 });
 
             modelBuilder.Entity("DetailingStore.Api.Models.ProductCategory", b =>

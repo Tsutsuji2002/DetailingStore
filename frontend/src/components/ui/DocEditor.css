@@ -1,0 +1,235 @@
+/* ── Doc Editor Wrapper ─────────────────────────────────── */
+.doc-editor-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+  background: #f0f2f5;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+}
+
+/* ── Toolbar ────────────────────────────────────────────── */
+.doc-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  align-items: center;
+  padding: 6px 10px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-color);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 22px;
+  background: var(--border-color);
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+
+.tb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 6px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.tb-btn:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.tb-btn:active {
+  background: var(--accent-primary);
+  color: #fff;
+}
+
+.tb-bold   { font-weight: 800; }
+.tb-italic { font-style: italic; }
+.tb-under  { text-decoration: underline; }
+.tb-strike { text-decoration: line-through; }
+
+.tb-action {
+  background: var(--bg-secondary);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0 8px;
+  height: 26px;
+  border-radius: 6px;
+  color: var(--text-primary);
+  gap: 4px;
+}
+
+.tb-action:hover {
+  background: var(--accent-primary);
+  color: #fff;
+}
+
+.tb-select {
+  height: 28px;
+  padding: 0 6px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 0.78rem;
+  cursor: pointer;
+  outline: none;
+}
+
+/* Color pickers */
+.tb-color-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  font-weight: 800;
+  font-size: 0.85rem;
+  position: relative;
+  user-select: none;
+  color: var(--text-primary);
+}
+
+.tb-color-label:hover { background: var(--bg-tertiary); }
+
+.tb-color-label input[type="color"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.tb-bg-color span {
+  text-decoration: underline;
+  text-decoration-color: #facc15;
+  text-decoration-thickness: 3px;
+}
+
+/* ── A4 Paper Canvas ────────────────────────────────────── */
+.doc-paper-wrap {
+  overflow-y: auto;
+  background: #e2e8f0;
+  padding: 24px 20px;
+  min-height: 400px;
+  max-height: 600px;
+}
+
+.doc-paper {
+  width: 210mm;
+  min-height: 297mm;
+  max-width: 100%;
+  margin: 0 auto;
+  background: #fff;
+  padding: 2cm 2.5cm;
+  border-radius: 4px;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.14);
+  font-family: 'Times New Roman', 'Georgia', serif;
+  font-size: 12pt;
+  line-height: 1.7;
+  color: #1e293b;
+  outline: none;
+  word-break: break-word;
+}
+
+@media (max-width: 768px) {
+  .doc-paper {
+    width: 100%;
+    padding: 1cm 1cm;
+  }
+  .doc-paper-wrap {
+    padding: 8px;
+  }
+}
+
+.doc-paper.readonly {
+  cursor: default;
+  box-shadow: none;
+  background: transparent;
+  min-height: unset;
+}
+
+.doc-paper:empty:before {
+  content: attr(data-placeholder);
+  color: #94a3b8;
+  font-style: italic;
+  pointer-events: none;
+}
+
+/* Typography inside editor */
+.doc-paper h1 { font-size: 1.9rem; font-weight: 800; margin: 0.75rem 0 0.4rem; color: #0f172a; }
+.doc-paper h2 { font-size: 1.4rem; font-weight: 700; margin: 0.65rem 0 0.35rem; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 4px; }
+.doc-paper h3 { font-size: 1.1rem; font-weight: 700; margin: 0.55rem 0 0.3rem; color: #334155; }
+.doc-paper p  { margin: 0.25rem 0; }
+
+.doc-paper ul, .doc-paper ol {
+  padding-left: 1.5rem;
+  margin: 0.3rem 0;
+}
+
+.doc-paper li { margin: 0.2rem 0; }
+
+.doc-paper table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.75rem 0;
+  font-size: 0.9rem;
+}
+
+.doc-paper th,
+.doc-paper td {
+  border: 1px solid #cbd5e1;
+  padding: 6px 10px;
+  text-align: left;
+}
+
+.doc-paper th {
+  background: #f1f5f9;
+  font-weight: 700;
+}
+
+.doc-paper tr:hover td {
+  background: #f8fafc;
+}
+
+.doc-paper a { color: #3b82f6; text-decoration: underline; }
+.doc-paper hr { border: none; border-top: 2px solid #e2e8f0; margin: 1rem 0; }
+
+/* ── Status Bar ─────────────────────────────────────────── */
+.doc-status-bar {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 4px 12px;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-color);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
