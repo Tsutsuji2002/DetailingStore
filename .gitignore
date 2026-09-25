@@ -64,3 +64,6 @@ yarn-error.log*
 Thumbs.db
 .gemini/
 *.tmp
+
+# Kiro AI Agent Specs
+.kiro/

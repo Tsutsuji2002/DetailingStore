@@ -55,10 +55,22 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IGoogleAuthService, GoogleAuthService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<ISignatureService, SignatureService>();
 builder.Services.AddSignalR();
 builder.Services.AddSingleton<IKafkaProducerService, KafkaProducerService>();
 builder.Services.AddHostedService<KafkaChatConsumerService>();
 builder.Services.AddHostedService<WorkOrderExpirationService>();
+
+// 3.1 Register Momo Payment Gateway Services
+builder.Services.AddSingleton<IMomoConfigurationService, MomoConfigurationService>();
+builder.Services.AddScoped<IMomoPaymentService, MomoPaymentService>();
+
+// 3.2 Configure HttpClient for Momo API
+builder.Services.AddHttpClient("MomoClient", client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(30);
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+});
 
 // 4. Configure JWT Bearer Authentication
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");

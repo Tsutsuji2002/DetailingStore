@@ -23,6 +23,7 @@ export interface UserOrder {
   paymentMethod: string;
   status: string;
   createdAt: string;
+  isPaid?: boolean;
 }
 
 const ORDERS_STORAGE_KEY = 'detailing_store_user_orders';
@@ -97,6 +98,18 @@ export const orderStorage = {
       return updated;
     } catch (e) {
       console.error('Failed to update order status', e);
+      return [];
+    }
+  },
+
+  updateOrderPayment: (orderId: string, isPaid: boolean): UserOrder[] => {
+    try {
+      const orders = orderStorage.getOrders();
+      const updated = orders.map(o => (o.id === orderId ? { ...o, isPaid } : o));
+      localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(updated));
+      return updated;
+    } catch (e) {
+      console.error('Failed to update order payment status', e);
       return [];
     }
   },

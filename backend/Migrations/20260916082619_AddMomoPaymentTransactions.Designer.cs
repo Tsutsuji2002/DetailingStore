@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using DetailingStore.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DetailingStore.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260916082619_AddMomoPaymentTransactions")]
+    partial class AddMomoPaymentTransactions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -62,7 +65,7 @@ namespace DetailingStore.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("chat_channels", (string)null);
+                    b.ToTable("chat_channels");
 
                     b.HasData(
                         new
@@ -101,7 +104,7 @@ namespace DetailingStore.Api.Migrations
 
                     b.HasIndex("ChannelId");
 
-                    b.ToTable("chat_channel_members", (string)null);
+                    b.ToTable("chat_channel_members");
                 });
 
             modelBuilder.Entity("DetailingStore.Api.Models.ChatMessage", b =>
@@ -144,7 +147,7 @@ namespace DetailingStore.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("chat_messages", (string)null);
+                    b.ToTable("chat_messages");
                 });
 
             modelBuilder.Entity("DetailingStore.Api.Models.HeroSlide", b =>
@@ -207,7 +210,7 @@ namespace DetailingStore.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("hero_slides", (string)null);
+                    b.ToTable("hero_slides");
                 });
 
             modelBuilder.Entity("DetailingStore.Api.Models.JobPositionEntity", b =>
@@ -264,7 +267,7 @@ namespace DetailingStore.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("job_recruitment", (string)null);
+                    b.ToTable("job_recruitment");
                 });
 
             modelBuilder.Entity("DetailingStore.Api.Models.MechanicDoc", b =>
@@ -339,7 +342,7 @@ namespace DetailingStore.Api.Migrations
 
                     b.HasIndex("Brand", "VehicleModel");
 
-                    b.ToTable("mechanic_docs", (string)null);
+                    b.ToTable("mechanic_docs");
                 });
 
             modelBuilder.Entity("DetailingStore.Api.Models.Order", b =>
@@ -391,7 +394,7 @@ namespace DetailingStore.Api.Migrations
 
                     b.HasIndex("CustomerId");
 
-                    b.ToTable("orders", (string)null);
+                    b.ToTable("orders");
                 });
 
             modelBuilder.Entity("DetailingStore.Api.Models.OrderItem", b =>
@@ -423,7 +426,7 @@ namespace DetailingStore.Api.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("order_items", (string)null);
+                    b.ToTable("order_items");
                 });
 
             modelBuilder.Entity("DetailingStore.Api.Models.PaymentTransaction", b =>
@@ -546,7 +549,7 @@ namespace DetailingStore.Api.Migrations
                         .IsUnique()
                         .HasFilter("\"product_order_id\" IS NOT NULL AND \"status\" = 'Pending'");
 
-                    b.ToTable("momo_payment_transactions", null, t =>
+                    b.ToTable("momo_payment_transactions", t =>
                         {
                             t.HasCheckConstraint("CK_PaymentTransaction_Amount_MaxLimit", "\"amount\" <= 50000000");
 
@@ -662,7 +665,7 @@ namespace DetailingStore.Api.Migrations
                     b.HasIndex("Slug")
                         .IsUnique();
 
-                    b.ToTable("product_categories", (string)null);
+                    b.ToTable("product_categories");
                 });
 
             modelBuilder.Entity("DetailingStore.Api.Models.ProductEntity", b =>
@@ -743,7 +746,7 @@ namespace DetailingStore.Api.Migrations
                     b.HasIndex("Slug")
                         .IsUnique();
 
-                    b.ToTable("products", (string)null);
+                    b.ToTable("products");
                 });
 
             modelBuilder.Entity("DetailingStore.Api.Models.ServiceBooking", b =>
@@ -835,7 +838,7 @@ namespace DetailingStore.Api.Migrations
 
                     b.HasIndex("ServiceId");
 
-                    b.ToTable("service_bookings", (string)null);
+                    b.ToTable("service_bookings");
                 });
 
             modelBuilder.Entity("DetailingStore.Api.Models.ServiceCategory", b =>
@@ -867,7 +870,7 @@ namespace DetailingStore.Api.Migrations
                     b.HasIndex("Slug")
                         .IsUnique();
 
-                    b.ToTable("service_categories", (string)null);
+                    b.ToTable("service_categories");
                 });
 
             modelBuilder.Entity("DetailingStore.Api.Models.ServiceEntity", b =>
@@ -941,7 +944,7 @@ namespace DetailingStore.Api.Migrations
                     b.HasIndex("Slug")
                         .IsUnique();
 
-                    b.ToTable("services", (string)null);
+                    b.ToTable("services");
                 });
 
             modelBuilder.Entity("DetailingStore.Api.Models.ServiceRequestEntity", b =>
@@ -1023,7 +1026,7 @@ namespace DetailingStore.Api.Migrations
 
                     b.HasIndex("Status");
 
-                    b.ToTable("service_requests", (string)null);
+                    b.ToTable("service_requests");
                 });
 
             modelBuilder.Entity("DetailingStore.Api.Models.ShopSettingEntity", b =>
@@ -1084,7 +1087,7 @@ namespace DetailingStore.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("shop_settings", (string)null);
+                    b.ToTable("shop_settings");
 
                     b.HasData(
                         new
@@ -1139,7 +1142,7 @@ namespace DetailingStore.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("site_contents", (string)null);
+                    b.ToTable("site_contents");
                 });
 
             modelBuilder.Entity("DetailingStore.Api.Models.User", b =>
@@ -1240,7 +1243,7 @@ namespace DetailingStore.Api.Migrations
                     b.HasIndex("Username")
                         .IsUnique();
 
-                    b.ToTable("users", (string)null);
+                    b.ToTable("users");
                 });
 
             modelBuilder.Entity("DetailingStore.Api.Models.WorkOrderEntity", b =>
@@ -1339,7 +1342,7 @@ namespace DetailingStore.Api.Migrations
 
                     b.HasIndex("WorkOrderStatus");
 
-                    b.ToTable("work_orders", (string)null);
+                    b.ToTable("work_orders");
                 });
 
             modelBuilder.Entity("DetailingStore.Api.Models.WorkShiftConfigEntity", b =>
@@ -1382,7 +1385,7 @@ namespace DetailingStore.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("work_shift_configs", (string)null);
+                    b.ToTable("work_shift_configs");
 
                     b.HasData(
                         new
@@ -1453,7 +1456,7 @@ namespace DetailingStore.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("work_shifts", (string)null);
+                    b.ToTable("work_shifts");
                 });
 
             modelBuilder.Entity("DetailingStore.Api.Models.ChatChannelMember", b =>

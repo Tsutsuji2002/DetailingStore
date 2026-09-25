@@ -16,6 +16,7 @@ import mechanicDocsReducer from '@/features/mechanicDocsSlice';
 import bookingsReducer from '@/features/bookingsSlice';
 import serviceRequestsReducer from '@/features/serviceRequestsSlice';
 import workOrdersReducer from '@/features/workOrdersSlice';
+import paymentReducer from '@/features/paymentSlice';
 
 export const store = configureStore({
   reducer: {
@@ -36,6 +37,7 @@ export const store = configureStore({
     bookings: bookingsReducer,
     serviceRequests: serviceRequestsReducer,
     workOrders: workOrdersReducer,
+    payment: paymentReducer,
   },
 });
 

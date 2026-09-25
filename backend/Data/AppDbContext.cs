@@ -31,6 +31,7 @@ namespace DetailingStore.Api.Data
         public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
         public DbSet<ServiceRequestEntity> ServiceRequests => Set<ServiceRequestEntity>();
         public DbSet<WorkOrderEntity> WorkOrders => Set<WorkOrderEntity>();
+        public DbSet<PaymentTransaction> PaymentTransactions => Set<PaymentTransaction>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -129,6 +130,44 @@ namespace DetailingStore.Api.Data
             modelBuilder.Entity<WorkOrderEntity>()
                 .Property(wo => wo.AssignedStaffIds)
                 .HasComment("GIN index required for JSONB array queries");
+
+            // Configure indexes for payment_transactions
+            modelBuilder.Entity<PaymentTransaction>()
+                .HasIndex(pt => pt.OrderId);
+
+            modelBuilder.Entity<PaymentTransaction>()
+                .HasIndex(pt => pt.RequestId);
+
+            modelBuilder.Entity<PaymentTransaction>()
+                .HasIndex(pt => pt.BookingId);
+
+            modelBuilder.Entity<PaymentTransaction>()
+                .HasIndex(pt => pt.ProductOrderId);
+
+            modelBuilder.Entity<PaymentTransaction>()
+                .HasIndex(pt => pt.Status);
+
+            modelBuilder.Entity<PaymentTransaction>()
+                .HasIndex(pt => pt.CreatedAt);
+
+            // Configure unique constraint to prevent duplicate pending transactions per booking
+            modelBuilder.Entity<PaymentTransaction>()
+                .HasIndex(pt => new { pt.BookingId, pt.Status })
+                .HasFilter("\"booking_id\" IS NOT NULL AND \"status\" = 'Pending'")
+                .IsUnique();
+
+            // Configure unique constraint to prevent duplicate pending transactions per order
+            modelBuilder.Entity<PaymentTransaction>()
+                .HasIndex(pt => new { pt.ProductOrderId, pt.Status })
+                .HasFilter("\"product_order_id\" IS NOT NULL AND \"status\" = 'Pending'")
+                .IsUnique();
+
+            // Configure check constraints for amount validation
+            modelBuilder.Entity<PaymentTransaction>()
+                .ToTable(t => t.HasCheckConstraint("CK_PaymentTransaction_Amount_Positive", "\"amount\" > 0"));
+
+            modelBuilder.Entity<PaymentTransaction>()
+                .ToTable(t => t.HasCheckConstraint("CK_PaymentTransaction_Amount_MaxLimit", "\"amount\" <= 50000000"));
 
             // Explicit snake_case table names for Posts & PostLikes
             modelBuilder.Entity<PostEntity>().ToTable("posts");

@@ -73,6 +73,13 @@ namespace DetailingStore.Api.Models
         [Column("total_price", TypeName = "decimal(12,2)")]
         public decimal TotalPrice { get; set; }
 
+        [Column("is_paid")]
+        public bool IsPaid { get; set; } = false;
+
+        [Column("payment_method")]
+        [MaxLength(50)]
+        public string? PaymentMethod { get; set; }
+
         [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }

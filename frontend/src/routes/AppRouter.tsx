@@ -22,6 +22,8 @@ const AccountPage = lazy(() => import('@/pages/user/AccountPage'));
 const SettingsPage = lazy(() => import('@/pages/user/SettingsPage'));
 const ServiceRequestForm = lazy(() => import('@/pages/user/ServiceRequestForm'));
 const ServiceRequestsList = lazy(() => import('@/pages/user/ServiceRequestsList'));
+const PaymentSuccess = lazy(() => import('@/pages/user/PaymentSuccess'));
+const PaymentCallback = lazy(() => import('@/pages/user/PaymentCallback'));
 
 // Admin Pages
 const AdminDashboardPage = lazy(() => import('@/pages/admin/DashboardPage'));
@@ -95,6 +97,10 @@ const AppRouter: React.FC = () => {
             <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
             <Route path="/user/service-requests" element={<ProtectedRoute requiredRole="customer"><ServiceRequestsList /></ProtectedRoute>} />
             <Route path="/user/service-requests/new" element={<ProtectedRoute requiredRole="customer"><ServiceRequestForm /></ProtectedRoute>} />
+            
+            {/* Payment Routes */}
+            <Route path="/payment/success" element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
+            <Route path="/payment/callback" element={<PaymentCallback />} />
 
             {/* Admin Routes */}
             <Route path="/admin/dashboard" element={<ProtectedRoute requiredRole="admin"><AdminDashboardPage /></ProtectedRoute>} />

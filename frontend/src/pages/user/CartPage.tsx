@@ -15,6 +15,7 @@ import { orderStorage, type UserOrder } from '@/utils/orderStorage';
 import { productStorage } from '@/utils/productStorage';
 import { fetchProductsThunk } from '@/features/productsSlice';
 import { useVNAddress } from '@/hooks/useVNAddress';
+import MomoPaymentModal from '@/components/payment/MomoPaymentModal';
 import './CartPage.css';
 
 const FREE_SHIPPING_THRESHOLD = 500000;
@@ -43,6 +44,10 @@ const CartPage: React.FC = () => {
   const [appliedDiscount, setAppliedDiscount] = useState<{ code: string; percent: number } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [completedOrder, setCompletedOrder] = useState<{ id: string; total: number } | null>(null);
+  
+  // Momo payment modal state
+  const [isMomoModalOpen, setIsMomoModalOpen] = useState(false);
+  const [selectedOrderIdForPayment, setSelectedOrderIdForPayment] = useState<string | null>(null);
 
   useEffect(() => {
     const addrs = getSavedAddresses(user?.id);
@@ -160,6 +165,7 @@ const CartPage: React.FC = () => {
         paymentMethod: paymentMethod,
         status: 'Đang xử lý',
         createdAt: new Date().toISOString(),
+        isPaid: false, // Initially unpaid for all payment methods
       };
 
       orderStorage.saveOrder(newOrder);
@@ -170,6 +176,12 @@ const CartPage: React.FC = () => {
       setCompletedOrder({ id: orderId, total: finalTotal });
       setIsSubmitting(false);
       dispatch(clearCart());
+
+      // If payment method is Momo, open the payment modal
+      if (paymentMethod === 'momo') {
+        setSelectedOrderIdForPayment(orderId);
+        setIsMomoModalOpen(true);
+      }
     }, 1000);
   };
 
@@ -241,6 +253,54 @@ const CartPage: React.FC = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Payment status and Momo button */}
+              {paymentMethod === 'momo' && (
+                <div className="payment-status-section" style={{ margin: '20px 0' }}>
+                  {orderStorage.getOrders().find(o => o.id === completedOrder.id)?.isPaid ? (
+                    <div className="paid-status-badge" style={{ 
+                      display: 'inline-flex', 
+                      alignItems: 'center', 
+                      gap: '8px', 
+                      padding: '10px 20px', 
+                      backgroundColor: '#4caf50', 
+                      color: 'white', 
+                      borderRadius: '8px',
+                      fontWeight: 'bold'
+                    }}>
+                      <FiCheckCircle size={20} />
+                      <span>Đã thanh toán</span>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        setSelectedOrderIdForPayment(completedOrder.id);
+                        setIsMomoModalOpen(true);
+                      }}
+                      className="btn-pay-with-momo"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '12px 24px',
+                        backgroundColor: '#d82d8b',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        fontSize: '16px',
+                        fontWeight: 'bold',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                      }}
+                      onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#b8256f'}
+                      onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#d82d8b'}
+                    >
+                      <FiSmartphone size={20} />
+                      <span>Thanh toán với Momo</span>
+                    </button>
+                  )}
+                </div>
+              )}
 
               <div className="success-btns">
                 <Link to="/products" className="btn-continue">
@@ -624,6 +684,14 @@ const CartPage: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Momo Payment Modal */}
+      <MomoPaymentModal
+        isOpen={isMomoModalOpen}
+        onClose={() => setIsMomoModalOpen(false)}
+        orderId={selectedOrderIdForPayment || undefined}
+        amount={finalTotal}
+      />
     </UserLayout>
   );
 };
