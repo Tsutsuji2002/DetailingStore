@@ -1,21 +1,21 @@
-﻿# 61 Team Detailing Store
+﻿# Detailing Store
 
-A full-stack web application for a motorcycle detailing shop offering online product sales, service booking, work order management, and integrated Momo payment processing.
+A full-stack web application for a detailing shop offering online product sales, service booking, work order management, and integrated Momo payment processing.
 
 ## 🎯 Features
 
 ### Customer Features
 - **Product Catalog & Shopping Cart**
-  - Browse motorcycle detailing products, accessories, and parts
+  - Browse detailing products, accessories, and parts
   - Add to cart with quantity management
-  - Apply discount codes (MOTOSHINE10, VIP20)
-  - Free shipping for orders over 500,000 VND
+  - Apply discount codes
+  - Free shipping threshold support
   
-- **Momo Payment Integration** 🆕
+- **Momo Payment Integration**
   - Pay for product orders using Momo QR code
   - Real-time payment status tracking
   - Automatic order status updates
-  - Vietnamese error messages for better UX
+  - Vietnamese error messages
 
 - **Service Requests**
   - Submit detailing service requests online
@@ -164,8 +164,8 @@ DetailingStore/
    SMTP_PORT=587
    SMTP_USERNAME=your-email@gmail.com
    SMTP_PASSWORD=your-app-password
-   SMTP_FROM_NAME=61 Team Detailing
-   SMTP_FROM_EMAIL=noreply@61teamdetailing.com
+   SMTP_FROM_NAME=Detailing Store
+   SMTP_FROM_EMAIL=noreply@yourdomain.com
 
    # Momo Payment Gateway (Sandbox)
    MOMO_PARTNER_CODE=MOMOIQA420180417
@@ -452,14 +452,6 @@ dotnet ef migrations add MigrationName
 - **Momo Integration Setup**: See `backend/MOMO_ERROR_CODES.md` for error code reference
 - **API Documentation**: Available via Swagger at `http://localhost:5080/swagger` (development only)
 
-## 👥 Team
-
-**61 Team Detailing** - Professional motorcycle detailing and maintenance services in Ho Chi Minh City, Vietnam.
-
 ## 📄 License
 
-This project is proprietary software for 61 Team Detailing. All rights reserved.
-
----
-
-**Built with ❤️ by 61 Team**
+This project is private and proprietary.
